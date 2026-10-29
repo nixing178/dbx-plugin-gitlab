@@ -1,0 +1,27 @@
+/dist/
+/ui/
+/preview/
+/test-results/
+/node_modules/
+/.tmp/
+/.dbx-dev/
+/.e2e/
+.dbx-repository-signing-key.env
+.DS_Store
+*.log
+
+# 本地开发笔记
+/.workbuddy/
+
+# 内部开发档案（设计计划与决策记录，不随源码公开）
+/PLAN.md
+/PLAN-UI.md
+/docs/plan-*.md
+/docs/publish-runbook.md
+/.store-pr/
+
+# 临时调试探针（验证完即删，不进公开仓库）
+/probe-cdp.mjs
+/probe.html
+/probe.ts
+/editor-preview.html

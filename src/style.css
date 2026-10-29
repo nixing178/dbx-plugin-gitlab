@@ -1,0 +1,4432 @@
+:root {
+  color-scheme: light;
+  --bg: var(--color-bg, #f5f6f8);
+  --panel: var(--color-surface, #ffffff);
+  --panel-soft: var(--color-surface-secondary, #f9fafb);
+  --text: var(--color-text, #1b1f27);
+  --muted: var(--color-text-secondary, #6b7280);
+  --border: var(--color-border, #e4e7ec);
+  --accent: var(--color-primary, #fc6d26);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --success: #1a9e6d;
+  --danger: #d64545;
+  --warning: #b6791f;
+  --info: #5b5bd6;
+  --radius: var(--radius-md, 12px);
+  --radius-sm: var(--radius-sm, 8px);
+  --font: var(--font-sans, "Inter", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif);
+  --mono: var(--font-mono, "JetBrains Mono", "Cascadia Code", Consolas, monospace);
+  --add-bg: #e9f8ef;
+  --add-text: #14663f;
+  --del-bg: #fdecec;
+  --del-text: #8c2323;
+  --hunk-bg: #eef2ff;
+  --hunk-text: #3b4a8c;
+  --file-folder: #c07908;
+  --file-markdown: #3d6fd4;
+  --file-code: #1d8b64;
+  --file-image: #9a4fc4;
+  --file-config: #77839b;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #14161b;
+  --panel: #1c1f26;
+  --panel-soft: #22262e;
+  --text: #e8ebf0;
+  --muted: #9aa3b2;
+  --border: #2b303a;
+  --accent-soft: color-mix(in srgb, var(--accent) 20%, transparent);
+  --warning: #e0a04a;
+  --info: #8f8ff0;
+  --add-bg: #12261a;
+  --add-text: #7fd6a4;
+  --del-bg: #2d1417;
+  --del-text: #f09a9a;
+  --hunk-bg: #1b2033;
+  --hunk-text: #9fb0ff;
+  --file-folder: #dfa64d;
+  --file-markdown: #8fabff;
+  --file-code: #63d3a4;
+  --file-image: #c68ef0;
+  --file-config: #9aa3b2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+code,
+pre {
+  font-family: var(--mono);
+}
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  height: 48px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  flex: 0 0 auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.brand img {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.nav-arrows {
+  display: flex;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.nav-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+}
+
+.nav-arrow:hover:not(:disabled) {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.nav-arrow:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.tabs button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.tabs button:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.tabs button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.topbar .connection {
+  color: var(--muted);
+  font-size: 12px;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .topbar .connection-name {
+    display: none;
+  }
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 16px;
+}
+
+/* 内容区宽度跟随窗口（窗口缩放 / 侧栏折叠都实时变化），不再锁 1280 */
+.page {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar .grow {
+  flex: 1;
+}
+
+.input,
+.select {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text);
+  outline: none;
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.btn.ghost:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.card-body {
+  padding: 14px;
+}
+
+.count {
+  color: var(--muted);
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  text-align: left;
+  color: inherit;
+  width: 100%;
+}
+
+.list-item:last-child {
+  border-bottom: 0;
+}
+
+.list-item:hover {
+  background: var(--panel-soft);
+}
+
+.list-item .title {
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.list-item .sub {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.list-item .right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+.small {
+  font-size: 12px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.badge[data-tone="success"] {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+}
+
+.badge[data-tone="danger"] {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+.badge[data-tone="warning"] {
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
+}
+
+.badge[data-tone="info"] {
+  color: var(--info);
+  background: color-mix(in srgb, var(--info) 12%, transparent);
+}
+
+.badge[data-tone="running"] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.badge[data-tone="neutral"] {
+  color: var(--muted);
+  background: var(--panel-soft);
+  border-color: var(--border);
+}
+
+.empty,
+.loading,
+.error-banner {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.error-banner {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, transparent);
+  border-radius: var(--radius);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-banner .grow {
+  flex: 1;
+}
+
+.project-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.project-head h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.project-head .path {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.project-stats {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.stat strong {
+  font-size: 14px;
+}
+
+.subtabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  padding: 0 8px;
+}
+
+.subtabs button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 10px 12px;
+  border-bottom: 2px solid transparent;
+}
+
+.subtabs button.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+.breadcrumb button {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  padding: 2px 4px;
+}
+
+.breadcrumb span {
+  color: var(--muted);
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.file-row:hover {
+  background: var(--panel-soft);
+}
+
+.file-row .icon {
+  width: 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.code-view {
+  margin: 0;
+  padding: 12px 14px;
+  overflow: auto;
+  max-height: 62vh;
+  font-size: 12.5px;
+  line-height: 1.55;
+  background: var(--panel-soft);
+  white-space: pre;
+}
+
+.commit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.commit-table th,
+.commit-table td {
+  text-align: left;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.commit-table th {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.commit-table tbody tr:hover {
+  background: var(--panel-soft);
+  cursor: pointer;
+}
+
+.commit-id {
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+.diff-file {
+  border-bottom: 1px solid var(--border);
+}
+
+.diff-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: var(--panel-soft);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.diff-head .path {
+  word-break: break-all;
+}
+
+/* 只保留横向滚动（长行不换行），纵向跟整页一起滚，不再限高 */
+.diff-body {
+  overflow-x: auto;
+}
+
+.diff-line {
+  display: flex;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.diff-line .ln {
+  flex: 0 0 52px;
+  text-align: right;
+  padding-right: 8px;
+  color: var(--muted);
+  user-select: none;
+  border-right: 1px solid var(--border);
+}
+
+.diff-line .code {
+  flex: 1;
+  padding-left: 10px;
+  white-space: pre;
+}
+
+.diff-line.add {
+  background: var(--add-bg);
+  color: var(--add-text);
+}
+
+.diff-line.del {
+  background: var(--del-bg);
+  color: var(--del-text);
+}
+
+.diff-line.hunk {
+  background: var(--hunk-bg);
+  color: var(--hunk-text);
+}
+
+.diff-line.meta {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.diff-line.hunk .ln,
+.diff-line.meta .ln {
+  background: transparent;
+}
+
+.markdown {
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  margin: 16px 0 8px;
+  line-height: 1.3;
+}
+
+.markdown h1 {
+  font-size: 20px;
+}
+
+.markdown h2 {
+  font-size: 17px;
+}
+
+.markdown h3 {
+  font-size: 15px;
+}
+
+.markdown p {
+  margin: 8px 0;
+}
+
+.markdown ul {
+  margin: 8px 0;
+  padding-left: 22px;
+}
+
+.markdown blockquote {
+  margin: 10px 0;
+  padding: 6px 12px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+}
+
+.markdown code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+}
+
+.markdown pre {
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  overflow: auto;
+}
+
+.markdown pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.markdown a {
+  color: var(--accent);
+}
+
+.mr-head h1 {
+  margin: 0 0 6px;
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+.mr-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.branch {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+}
+
+.discussion {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.discussion:last-child {
+  border-bottom: 0;
+}
+
+.note {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  object-fit: cover;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.note-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.note-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.note-head strong {
+  color: var(--text);
+}
+
+.note-body {
+  margin-top: 4px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.inline-anchor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--info);
+  background: color-mix(in srgb, var(--info) 10%, transparent);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.footer-note {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 8px 0 20px;
+}
+
+/* 写操作：弹窗、表单、评论框 */
+.btn.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.btn.small {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 60;
+}
+
+.modal {
+  width: min(560px, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-head h2 {
+  margin: 0;
+  font-size: 15px;
+  flex: 1;
+}
+
+.modal-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.textarea {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+  outline: none;
+}
+
+.textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.composer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.thread-composer {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.discussion-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.error-text {
+  color: var(--danger);
+  font-size: 12px;
+  margin: 0;
+}
+
+.diff-line .comment-btn {
+  flex: 0 0 26px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.diff-line:hover .comment-btn {
+  opacity: 1;
+}
+
+.diff-line .comment-btn:hover {
+  background: var(--accent-soft);
+}
+
+/* CI：作业卡片与日志 */
+.job-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.job-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text);
+  min-width: 220px;
+}
+
+.job-card:hover {
+  border-color: var(--accent);
+}
+
+.job-card.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.job-name {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.log-body {
+  max-height: 56vh;
+  overflow: auto;
+  background: var(--panel-soft);
+  padding: 8px 0;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.log-row {
+  display: flex;
+  gap: 10px;
+  padding: 0 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.log-row .ln {
+  flex: 0 0 46px;
+  text-align: right;
+  color: var(--muted);
+  user-select: none;
+}
+
+.log-row .msg {
+  flex: 1;
+}
+
+.log-row[data-level="error"] .msg {
+  color: var(--danger);
+}
+
+.log-row[data-level="warn"] .msg {
+  color: var(--warning);
+}
+
+.log-row[data-level="info"] .msg {
+  color: var(--muted);
+}
+
+.variable-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.variable-row .input {
+  flex: 1;
+}
+
+/* Issue / Todo */
+.as-link {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+
+.as-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.issue-title {
+  margin: 0 0 8px;
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+.list-item > .grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 代码搜索与测试报告 */
+.search-snippet {
+  margin: 6px 0 0;
+  padding: 6px 8px;
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow: auto;
+  max-height: 120px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.failed-cases {
+  margin-top: 12px;
+}
+
+.failed-cases h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--danger);
+}
+
+.failed-case {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------------------------------------------------------------
+   布局壳：顶栏 + 左侧全局导航 + 主区
+   --------------------------------------------------------------- */
+.shell-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.topbar .brand {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.topbar .brand:hover {
+  color: var(--accent);
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.crumb-link {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.crumb-link:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.crumb-current {
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 4px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.crumb-sep {
+  color: var(--muted);
+  opacity: 0.6;
+  margin: 0 1px;
+}
+
+.sidebar {
+  flex: 0 0 240px;
+  width: 240px;
+  border-right: 1px solid var(--border);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  transition: flex-basis 0.16s ease, width 0.16s ease;
+}
+
+.sidebar.collapsed {
+  flex-basis: 56px;
+  width: 56px;
+}
+
+.sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+.sidebar-back:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.sidebar-project {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 10px;
+  min-width: 0;
+}
+
+.sidebar-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sidebar-avatar.large {
+  width: 36px;
+  height: 36px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+}
+
+.sidebar-project-name {
+  font-weight: 600;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-group {
+  padding: 12px 8px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-size: 13px;
+}
+
+.sidebar-item:hover {
+  background: var(--panel-soft);
+}
+
+.sidebar-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sidebar-item.recent {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.sidebar-item .sidebar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-empty {
+  padding: 4px 10px 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  padding: 10px 16px;
+  font-size: 12px;
+  text-align: left;
+}
+
+.sidebar-toggle:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.sidebar.collapsed .sidebar-label {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-item,
+.sidebar.collapsed .sidebar-back,
+.sidebar.collapsed .sidebar-toggle {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar.collapsed .sidebar-project {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    flex-basis: 56px;
+    width: 56px;
+  }
+
+  .sidebar .sidebar-label {
+    display: none;
+  }
+
+  .sidebar .sidebar-item,
+  .sidebar .sidebar-back,
+  .sidebar .sidebar-toggle,
+  .sidebar .sidebar-project {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* ---------------------------------------------------------------
+   详情页三栏：主内容 + 右侧元信息（GitLab 式）
+   --------------------------------------------------------------- */
+.detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 16px;
+  align-items: start;
+}
+
+.detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+}
+
+.side-body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.side-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.side-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.side-actions {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.timeline {
+  padding: 0 14px 8px;
+}
+
+.timeline .note {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.timeline .note:last-child {
+  border-bottom: 0;
+}
+
+.timeline-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 14px -14px 12px;
+}
+
+.timeline-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.pipeline-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Diff：文件折叠、展开上下文、Viewed */
+.diff-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.diff-progress {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.diff-head {
+  gap: 8px;
+}
+
+.diff-toggle {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.diff-stat {
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.diff-stat .add {
+  color: var(--add-text);
+}
+
+.diff-stat .del {
+  color: var(--del-text);
+}
+
+.viewed-box {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.diff-file.is-viewed .diff-head .path {
+  color: var(--muted);
+}
+
+.diff-hunk-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 10px;
+  background: var(--hunk-bg);
+  color: var(--hunk-text);
+}
+
+.hunk-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+}
+
+.hunk-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--hunk-text);
+  font-size: 11px;
+  padding: 0 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.hunk-btn:hover {
+  border-color: currentColor;
+}
+
+.diff-note {
+  margin: 0;
+  padding: 6px 14px;
+}
+
+/* ---------------------------------------------------------------
+   提交详情：头部 + 元信息 + 变更
+   --------------------------------------------------------------- */
+.commit-head-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.commit-head-meta .btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.commit-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+
+.gl-avatar.sm {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+
+.commit-title {
+  margin: 10px 0 0;
+  font-size: 19px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.commit-message {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--panel-soft);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.commit-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  padding: 4px 0;
+}
+
+.commit-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 14px;
+}
+
+.commit-mr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  word-break: break-word;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.commit-changes-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.commit-changes-head .timeline-title {
+  margin: 0;
+}
+
+.commit-row {
+  cursor: pointer;
+  align-items: center;
+}
+
+.commit-row-arrow {
+  flex: 0 0 auto;
+  color: var(--muted);
+  display: inline-flex;
+}
+
+.commit-row:hover .commit-row-arrow {
+  color: var(--text);
+}
+
+@media (max-width: 1200px) {
+  .detail-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .detail-side {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+/* ---------------------------------------------------------------
+   CI：横向 stage 看板 + 作业抽屉
+   --------------------------------------------------------------- */
+.pipeline-board {
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
+  padding: 12px 2px 4px;
+  overflow-x: auto;
+}
+
+.pipeline-stage {
+  position: relative;
+  flex: 0 0 220px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pipeline-stage:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  right: -26px;
+  width: 26px;
+  height: 1px;
+  background: var(--border);
+}
+
+.stage-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pipeline-stage[data-status="failed"] .stage-head {
+  color: var(--danger);
+}
+
+.stage-jobs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stage-jobs .job-card {
+  width: 100%;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.job-card.failed {
+  border-color: color-mix(in srgb, var(--danger) 55%, var(--border));
+  background: color-mix(in srgb, var(--danger) 7%, transparent);
+}
+
+.job-play {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.drawer-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.job-drawer {
+  position: relative;
+  height: 100%;
+  min-width: 380px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  box-shadow: -18px 0 48px rgba(0, 0, 0, 0.18);
+}
+
+.drawer-resize {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+}
+
+.drawer-resize.active {
+  background: var(--accent-soft);
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.drawer-body .job-log {
+  flex: 1;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-body .log-body {
+  max-height: none;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 720px) {
+  .job-drawer {
+    width: 100% !important;
+    min-width: 0;
+  }
+}
+
+/* ---------------------------------------------------------------
+   项目看板（对齐 GitLab dashboard/projects）
+   --------------------------------------------------------------- */
+.page-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.page-head h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.project-tabs {
+  display: flex;
+  gap: 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.project-tabs button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 0 10px;
+  font-size: 13.5px;
+}
+
+.project-tabs button:hover {
+  color: var(--text);
+}
+
+.project-tabs button.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px;
+  min-width: 200px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.search-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+}
+
+.sort-toggle {
+  width: 34px;
+  padding: 0;
+  font-size: 14px;
+}
+
+.project-row {
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+}
+
+.project-avatar {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.project-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.project-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.project-title strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-namespace {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.project-desc {
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-stats {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.project-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 列表行星标按钮：与统计项同尺寸，hover 才出现底色，不改变行高 */
+.project-stats .project-star {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.project-stats .project-star:hover:not(:disabled) {
+  background: var(--panel-soft);
+  color: var(--accent);
+}
+
+.project-stats .project-star.starred {
+  color: var(--warning);
+}
+
+.project-stats .project-star.starred svg {
+  fill: currentColor;
+}
+
+.project-stats .project-star:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.project-updated {
+  flex: 0 0 auto;
+  width: 132px;
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .project-stats {
+    display: none;
+  }
+
+  .project-updated {
+    width: auto;
+  }
+}
+
+/* ---------- GitLab 风格项目页 ---------- */
+
+.gl-project {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gl-project-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.gl-project-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.gl-project-title h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gl-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.gl-head-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gl-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* 项目页星标：可点击，已加星时实心高亮 */
+.gl-star-toggle {
+  cursor: pointer;
+}
+
+.gl-star-toggle:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gl-star-toggle.starred {
+  border-color: color-mix(in srgb, var(--warning) 45%, transparent);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: var(--warning);
+}
+
+.gl-star-toggle.starred svg {
+  fill: currentColor;
+}
+
+.gl-star-toggle:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.gl-star-error {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.gl-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.gl-icon-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gl-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.gl-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gl-btn.subtle {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.gl-btn.subtle:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+/* 分支选择：可搜索（GitRefSelect），宽度固定避免分支名长短导致工具行跳动 */
+.gl-branch-select {
+  width: 220px;
+}
+
+.gl-branch-select .gl-ref-trigger {
+  font-size: 13px;
+}
+
+/* 下拉比触发器宽，长分支名不至于每行都被截断 */
+.gl-branch-select .gl-ref-menu {
+  right: auto;
+  width: 360px;
+}
+
+.gl-controls-path {
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.gl-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.gl-nowrap {
+  white-space: nowrap;
+}
+
+.gl-dropdown {
+  position: relative;
+}
+
+.gl-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 30;
+  min-width: 240px;
+  max-height: 320px;
+  overflow: auto;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+
+.gl-dropdown-menu.right {
+  left: auto;
+  right: 0;
+  min-width: 200px;
+}
+
+.gl-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+}
+
+.gl-dropdown-item:hover {
+  background: var(--panel-soft);
+}
+
+.gl-dropdown-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.gl-dropdown-empty {
+  padding: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gl-project-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.gl-project-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gl-side-card {
+  flex: 0 0 280px;
+  width: 280px;
+  padding: 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+
+.gl-side-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.gl-side-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gl-side-stats li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.gl-side-stats li span {
+  color: var(--text);
+}
+
+.gl-side-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+}
+
+.gl-side-shortcuts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gl-side-shortcuts button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+}
+
+.gl-side-shortcuts button:hover {
+  background: var(--panel-soft);
+  color: var(--accent);
+}
+
+.gl-side-plus {
+  width: 12px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.gl-side-meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gl-side-desc {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.gl-commit-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.gl-commit-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gl-commit-open:hover .gl-commit-title {
+  color: var(--accent);
+}
+
+.gl-commit-open:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.gl-commit-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.gl-commit-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.gl-commit-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gl-commit-meta {
+  display: flex;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gl-commit-sha {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gl-commit-bar-skeleton .gl-commit-avatar {
+  color: var(--muted);
+}
+
+.gl-inline-warn {
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+  color: var(--warning);
+  font-size: 12px;
+}
+
+.gl-file-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.gl-file-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-soft);
+}
+
+.gl-file-toolbar-icon {
+  color: var(--file-folder);
+}
+
+.gl-file-toolbar .gl-icon-btn {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+}
+
+.gl-path-crumb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.gl-path-crumb button {
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.gl-path-crumb button:hover {
+  background: var(--accent-soft);
+}
+
+.gl-file-count {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 骨架占位：换目录时先撑住行高，避免整块空白跳动 */
+.gl-file-skeleton {
+  padding: 2px 0;
+}
+
+.gl-file-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gl-file-skeleton-row:last-child {
+  border-bottom: 0;
+}
+
+.gl-sk {
+  height: 9px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--panel-soft) 0%,
+    color-mix(in srgb, var(--muted) 16%, transparent) 45%,
+    var(--panel-soft) 100%
+  );
+  background-size: 220% 100%;
+  animation: gl-sk-shimmer 1.5s ease-in-out infinite;
+}
+
+.gl-sk-icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.gl-sk-name {
+  flex: 0 0 auto;
+  width: 30%;
+}
+
+.gl-file-skeleton-row:nth-child(even) .gl-sk-name {
+  width: 22%;
+}
+
+.gl-sk-commit {
+  flex: 1 1 auto;
+  max-width: 36%;
+}
+
+.gl-sk-time {
+  flex: 0 0 auto;
+  width: 64px;
+  margin-left: auto;
+}
+
+@keyframes gl-sk-shimmer {
+  from {
+    background-position: 220% 0;
+  }
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-sk {
+    animation: none;
+  }
+}
+
+.gl-file-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
+}
+
+.gl-file-table th {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: left;
+}
+
+.gl-file-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.gl-file-row {
+  transition: background-color 0.12s ease;
+}
+
+.gl-file-row:last-child td {
+  border-bottom: 0;
+}
+
+.gl-file-row:hover {
+  background: var(--panel-soft);
+}
+
+.gl-file-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.gl-file-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.gl-file-icon[data-kind="tree"] {
+  color: var(--file-folder);
+}
+
+.gl-file-icon[data-kind="markdown"] {
+  color: var(--file-markdown);
+}
+
+.gl-file-icon[data-kind="image"] {
+  color: var(--file-image);
+}
+
+.gl-file-icon[data-kind="code"] {
+  color: var(--file-code);
+}
+
+.gl-file-icon[data-kind="config"] {
+  color: var(--file-config);
+}
+
+.gl-file-name button {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gl-file-row:hover .gl-file-name button {
+  color: var(--accent);
+}
+
+.gl-file-commit {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.gl-file-commit-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.gl-file-commit-meta .mono {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+}
+
+.gl-file-table th:first-child {
+  width: 42%;
+}
+
+.gl-file-updated-col,
+.gl-file-updated {
+  width: 150px;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.gl-file-updated > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gl-file-view {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.gl-file-view-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gl-readme {
+  overflow: hidden;
+}
+
+.gl-readme-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.gl-readme .markdown {
+  padding: 14px;
+}
+
+@media (max-width: 1180px) {
+  .gl-side-card {
+    flex-basis: 240px;
+    width: 240px;
+  }
+}
+
+@media (max-width: 900px) {
+  .gl-project-body {
+    flex-direction: column;
+    /* 列向时 align-items 管的是宽度，flex-start 会让主区按内容撑开、超出可视区 */
+    align-items: stretch;
+  }
+
+  .gl-side-card {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .gl-side-stats {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 760px) {
+  /* 窄窗优先保留「最后提交」，日期列让位，和 GitLab 网页的取舍一致 */
+  .gl-file-table th:nth-child(3),
+  .gl-file-table td:nth-child(3) {
+    display: none;
+  }
+
+  .gl-file-table th:first-child {
+    width: 46%;
+  }
+
+  .gl-project-title h1 {
+    font-size: 18px;
+  }
+}
+
+/* ---------- GitLab 风格侧栏 ---------- */
+
+.gl-sidebar {
+  background: var(--panel-soft);
+}
+
+.gl-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px 8px;
+}
+
+.gl-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.gl-sidebar-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.gl-sidebar-title {
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.gl-sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+}
+
+.gl-sidebar-toggle:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+
+.gl-sidebar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  margin: 0 4px 6px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.gl-sidebar-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.gl-sidebar-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.gl-sidebar-search input::placeholder {
+  color: var(--muted);
+}
+
+.sidebar.collapsed .gl-sidebar-head {
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------
+   合并请求列表（对齐 GitLab merge requests 页）
+   --------------------------------------------------------------- */
+.gl-mr-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.gl-mr-tabs {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.gl-tab-count {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.project-tabs button.active .gl-tab-count {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.gl-mr-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.gl-mr-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+.gl-scope-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 10px;
+  min-width: 168px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.gl-scope-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.gl-scope-field select {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+}
+
+.gl-mr-sort {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gl-mr-card {
+  overflow: hidden;
+}
+
+.gl-mr-item {
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.gl-mr-state {
+  display: inline-flex;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.gl-mr-state[data-state="opened"] {
+  color: var(--success);
+}
+
+.gl-mr-state[data-state="merged"] {
+  color: var(--info);
+}
+
+.gl-mr-state[data-state="closed"] {
+  color: var(--danger);
+}
+
+.gl-mr-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.gl-mr-title {
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.gl-mr-item:hover .gl-mr-title {
+  color: var(--accent);
+}
+
+.gl-mr-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gl-mr-badges {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.gl-sort-asc {
+  transform: rotate(180deg);
+}
+
+/* ── 新建合并请求（GitLab 整页表单） ───────────────────────────── */
+
+.gl-new-mr {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 40px;
+}
+
+.gl-new-mr-head h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.gl-new-mr-subtitle {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.gl-new-mr-ref {
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.gl-new-mr-branches {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.gl-new-mr-branch h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gl-new-mr-pickers {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.gl-new-mr-project {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  min-width: 0;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gl-new-mr-commit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-soft);
+  font-size: 12px;
+}
+
+.gl-new-mr-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.gl-new-mr-dot[data-state="ready"] {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.gl-new-mr-commit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.gl-new-mr-commit-title {
+  color: var(--text);
+  font-weight: 500;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.gl-new-mr-commit-meta {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.gl-new-mr-sha {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.gl-new-mr-compare {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.gl-new-mr-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gl-new-mr-field > label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gl-new-mr-field .input {
+  width: 100%;
+  height: 36px;
+}
+
+.gl-new-mr-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+
+.gl-new-mr-meta-row {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.gl-new-mr-meta-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gl-new-mr-meta-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.gl-new-mr-meta-control > .gl-select {
+  flex: 0 1 320px;
+  max-width: 320px;
+}
+
+.gl-new-mr-merge {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+
+.gl-new-mr-merge legend {
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gl-new-mr-submit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gl-new-mr-tabs {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gl-new-mr-tabs button {
+  position: relative;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.gl-new-mr-tabs button.active {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.gl-new-mr-tabs button.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+}
+
+.gl-new-mr-commits,
+.gl-new-mr-changes {
+  display: flex;
+  flex-direction: column;
+}
+
+.gl-new-mr-commit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.gl-new-mr-commit-row:last-child {
+  border-bottom: 0;
+}
+
+.gl-new-mr-change-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.gl-new-mr-change-row:last-child {
+  border-bottom: 0;
+}
+
+.gl-new-mr-diffstat {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.gl-add {
+  color: var(--add-text);
+}
+
+.gl-del {
+  color: var(--del-text);
+}
+
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.link-btn:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.hint {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* 分支下拉 */
+.gl-ref,
+.gl-select {
+  position: relative;
+  min-width: 0;
+}
+
+.gl-ref-trigger,
+.gl-select-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12px;
+  text-align: left;
+}
+
+.gl-ref-trigger:hover,
+.gl-select-trigger:hover {
+  border-color: var(--accent);
+}
+
+.gl-ref-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gl-ref-menu,
+.gl-select-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+}
+
+.gl-ref-search,
+.gl-select-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px;
+  padding: 0 8px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-soft);
+  color: var(--muted);
+}
+
+.gl-ref-search input,
+.gl-select-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.gl-ref-list,
+.gl-select-list {
+  overflow-y: auto;
+  padding: 2px 0;
+}
+
+.gl-ref-option,
+.gl-select-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  text-align: left;
+}
+
+.gl-ref-option:hover,
+.gl-select-option:hover {
+  background: var(--panel-soft);
+}
+
+.gl-ref-option.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.gl-ref-note,
+.gl-select-note {
+  padding: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gl-ref-clear,
+.gl-select-clear {
+  padding: 8px 10px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--panel-soft);
+  color: var(--accent);
+  font-size: 12px;
+  text-align: left;
+}
+
+/* 通用多选下拉 */
+.gl-select-values {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.gl-select-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 140px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gl-select-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.gl-select-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.gl-select-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.gl-select-hint {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.gl-label-dot {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+/* Markdown 描述编辑器 */
+.gl-md {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.gl-md-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-soft);
+  flex-wrap: wrap;
+}
+
+.gl-md-tool {
+  min-width: 26px;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.gl-md-tool:hover {
+  border-color: var(--border);
+  color: var(--text);
+  background: var(--panel);
+}
+
+.gl-md-tool.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--panel);
+}
+
+.gl-md-sep {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: var(--border);
+}
+
+.gl-md-textarea {
+  display: block;
+  width: 100%;
+  min-height: 190px;
+  padding: 10px 12px;
+  border: 0;
+  outline: none;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.gl-md-preview {
+  min-height: 190px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.gl-md-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--panel-soft);
+}
+
+.gl-md-badge {
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 1100px) {
+  .gl-new-mr-branches {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── 提交入口：所有展示提交的位置都可点进详情 ─────────────────── */
+
+.gl-new-mr-commit-open {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gl-new-mr-commit-open:hover .gl-new-mr-commit-title {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.gl-new-mr-commit-open:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.gl-file-commit-link {
+  display: block;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.gl-file-commit-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.gl-file-commit-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.list-item[role="button"] {
+  cursor: pointer;
+}
+
+.list-item[role="button"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.commit-table tbody tr:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.link.small {
+  font-size: 11px;
+}
+
+/* ---------------------------------------------------------------
+   合并请求详情（对齐 GitLab merge request 页）
+   --------------------------------------------------------------- */
+/* 详情页不锁 1280：页签内容随窗口宽度自适应，宽屏下 diff 也不再被挤在中间 */
+.gl-mr-view {
+  max-width: none;
+  gap: 10px;
+}
+
+.gl-mr-view-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 2px 0;
+}
+
+.gl-mr-view-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.gl-mr-view-title h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.gl-mr-view-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.gl-mr-view-actor {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.gl-mr-view-actor strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.gl-mr-view-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.gl-mr-toast {
+  margin-right: 4px;
+}
+
+.gl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.gl-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gl-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gl-state-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px 2px 7px;
+  border-radius: 999px;
+  background: var(--muted);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gl-state-pill[data-tone="success"] {
+  background: var(--success);
+}
+
+.gl-state-pill[data-tone="info"] {
+  background: var(--info);
+}
+
+.gl-state-pill[data-tone="danger"] {
+  background: var(--danger);
+}
+
+.gl-state-pill[data-tone="warning"] {
+  background: var(--warning);
+}
+
+.gl-state-pill[data-tone="running"] {
+  background: var(--accent);
+}
+
+/* 下拉菜单：<details> 承载，点开后点空白不一定关闭，菜单项里显式关闭 */
+.gl-menu {
+  position: relative;
+}
+
+.gl-menu > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.gl-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.gl-menu[open] > summary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gl-menu-list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 190px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 14%);
+}
+
+.gl-menu-list button {
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+}
+
+.gl-menu-list button:hover:not(:disabled) {
+  background: var(--panel-soft);
+  color: var(--accent);
+}
+
+.gl-menu-list button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 页签 */
+.gl-detail-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 2px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.gl-detail-tabs button {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.gl-detail-tabs button:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.gl-detail-tabs button.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.gl-detail-tabs .gl-tab-count {
+  margin-left: 6px;
+  border: 1px solid var(--border);
+}
+
+/* 概览：描述 + 合并面板 + 动态 在同一张纸上 */
+.detail-main.gl-mr-sheet {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  gap: 14px;
+}
+
+.gl-mr-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+/* 准备合并 */
+.gl-ready {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.gl-ready-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+}
+
+.gl-ready-head:hover {
+  background: color-mix(in srgb, var(--accent) 7%, var(--panel-soft));
+}
+
+.gl-ready-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.gl-ready-dot[data-tone="danger"] {
+  background: var(--danger);
+}
+
+.gl-ready-dot[data-tone="neutral"] {
+  background: var(--muted);
+}
+
+/* 表情回应条 */
+.gl-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gl-reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.gl-reaction:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.gl-reaction.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.gl-reaction:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.gl-reaction-glyph {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* 批准面板与合并面板同款外壳 */
+.gl-approvals {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.gl-approvals .gl-ready-body .btn {
+  align-self: flex-start;
+}
+
+/* 小节变多后右栏比视口高，sticky 会把底部裁掉，这里跟随整页滚动 */
+.gl-mr-view .detail-side {
+  position: static;
+}
+
+/* 提交 / 流水线 / 变更页签没有右栏，主区占满整行 */
+.detail-layout.gl-mr-layout-wide {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.gl-diff-error {
+  margin: 12px;
+}
+
+.gl-diff-raw {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  word-break: break-all;
+}
+
+/* ---------------------------------------------------------------
+   变更页：左栏文件树 + 右栏单文件 diff（对齐 GitLab changes 页）
+   --------------------------------------------------------------- */
+.gl-diff-browser {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.gl-diff-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-soft);
+}
+
+.gl-diff-base {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.gl-diff-base code {
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.gl-diff-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 10px 12px 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning);
+}
+
+.gl-diff-notice-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gl-diff-notice-main strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.gl-diff-notice-main p {
+  margin: 0;
+}
+
+.gl-diff-columns {
+  display: grid;
+  /* 文件列表随内容区动态变化：窄屏保底 300，宽屏按 26% 增长，最多 460，剩余宽度全给 diff */
+  grid-template-columns: clamp(300px, 26%, 460px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.gl-diff-files {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+}
+
+.gl-diff-files-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gl-diff-files-head .gl-icon-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gl-diff-search {
+  height: 30px;
+  margin: 8px 10px;
+  min-width: 0;
+  font-size: 12.5px;
+}
+
+/* 文件树不单独滚：整页一起滚，避免左右两个滚动条各滚各的 */
+.gl-diff-tree {
+  padding: 2px 6px 10px;
+}
+
+.gl-diff-folder,
+.gl-diff-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.gl-diff-folder {
+  color: var(--muted);
+}
+
+.gl-diff-folder:hover,
+.gl-diff-file:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.gl-diff-file.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.gl-diff-file.viewed .gl-diff-file-name {
+  color: var(--muted);
+}
+
+.gl-diff-file-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gl-diff-file .diff-stat {
+  flex: 0 0 auto;
+}
+
+.gl-diff-content {
+  min-width: 0;
+}
+
+.gl-diff-content .diff-file {
+  border-bottom: 0;
+}
+
+@media (max-width: 1100px) {
+  .gl-diff-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gl-diff-files {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+.gl-ready-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.gl-ready-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gl-ready-hint {
+  margin: 0;
+}
+
+.btn.primary.gl-ready-merge {
+  align-self: flex-start;
+  border-color: var(--success);
+  background: var(--success);
+  color: #fff;
+}
+
+.btn.primary.gl-ready-merge:hover:not(:disabled) {
+  border-color: var(--success);
+  color: #fff;
+  filter: brightness(0.95);
+}
+
+.gl-flip {
+  transform: rotate(-90deg);
+}
+
+/* 动态 */
+.gl-activity {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.gl-activity-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gl-activity-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.gl-activity-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.gl-activity-filter select {
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.gl-comment-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gl-md-foot-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gl-activity-list .timeline {
+  padding: 0;
+}
+
+/* 右栏：GitLab 式小节列表 */
+.gl-mr-side {
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.gl-side-block {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gl-side-block:last-child {
+  border-bottom: 0;
+}
+
+.gl-side-block-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gl-side-block-head h3 {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gl-side-block-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.gl-side-facts {
+  gap: 9px;
+}
+
+.gl-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gl-fact > span:last-child {
+  color: var(--text);
+  word-break: break-word;
+}
+
+.gl-fact .badge {
+  align-self: flex-start;
+}
+
+.gl-people {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gl-person {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gl-avatar-xs {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.gl-side-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.gl-side-edit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* 评论编辑器紧凑态 */
+.gl-md-compact .gl-md-textarea,
+.gl-md-compact .gl-md-preview {
+  min-height: 110px;
+}
+
+@media (max-width: 1100px) {
+  .gl-mr-view-head {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .gl-mr-view-actions {
+    justify-content: flex-start;
+  }
+}

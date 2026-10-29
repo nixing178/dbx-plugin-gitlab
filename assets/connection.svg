@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GitLab">
+  <rect width="64" height="64" rx="14" fill="#FC6D26"/>
+  <circle cx="32" cy="32" r="13.5" fill="none" stroke="#FFFFFF" stroke-width="3.4"/>
+  <g stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round">
+    <path d="M32 14v9"/>
+    <path d="M32 41v9"/>
+    <path d="M14 32h9"/>
+    <path d="M41 32h9"/>
+  </g>
+  <circle cx="32" cy="32" r="3.6" fill="#FFFFFF"/>
+</svg>

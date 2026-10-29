@@ -1,0 +1,269 @@
+{
+  "$schema": "https://raw.githubusercontent.com/t8y2/dbx/main/plugins/manifest.schema.json",
+  "manifest_version": 1,
+  "id": "io.github.nixing178.gitlab",
+  "name": "GitLab Console",
+  "version": "0.1.0",
+  "publisher": "nixing178",
+  "homepage": "https://github.com/nixing178/dbx-plugin-gitlab",
+  "source": "https://github.com/nixing178/dbx-plugin-gitlab",
+  "description": "Browse projects and code, review merge requests, watch pipelines and handle issues inside DBX.",
+  "icon": "assets/plugin.svg",
+  "engines": {
+    "dbx": ">=0.6.43",
+    "host_api": "1"
+  },
+  "permissions": [
+    "host.workbench",
+    "host.events"
+  ],
+  "entrypoints": {
+    "backend": {
+      "executable": "bin/dbx-plugin-gitlab"
+    },
+    "ui": {
+      "root": "ui",
+      "entry": "ui/index.html"
+    }
+  },
+  "contributions": [
+    {
+      "type": "connection-provider",
+      "id": "io.github.nixing178.gitlab.connection",
+      "label": "GitLab",
+      "icon": "assets/connection.svg",
+      "database_type": "gitlab",
+      "description": "Connect to a GitLab instance with an access token or OAuth.",
+      "fields": [
+        {
+          "key": "display_name",
+          "label": "Connection name",
+          "type": "text",
+          "default": "GitLab",
+          "binding": "name",
+          "required": true
+        },
+        {
+          "key": "scheme",
+          "label": "Protocol",
+          "type": "select",
+          "binding": "config",
+          "default": "https",
+          "options": [
+            { "label": "HTTPS", "value": "https" },
+            { "label": "HTTP (internal network)", "value": "http" }
+          ]
+        },
+        {
+          "key": "host",
+          "label": "Host / domain",
+          "type": "text",
+          "binding": "host",
+          "placeholder": "gitlab.example.com",
+          "required": true
+        },
+        {
+          "key": "port",
+          "label": "Port",
+          "type": "number",
+          "binding": "port",
+          "default": 443,
+          "required": true
+        },
+        {
+          "key": "base_path",
+          "label": "Context path",
+          "type": "text",
+          "binding": "config",
+          "default": "",
+          "placeholder": "/gitlab"
+        },
+        {
+          "key": "auth_method",
+          "label": "Authentication",
+          "type": "select",
+          "binding": "config",
+          "default": "token",
+          "options": [
+            { "label": "Access token", "value": "token" },
+            { "label": "Username & password", "value": "password" }
+          ]
+        },
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "binding": "secret",
+          "placeholder": "Personal / project access token (api or read_api)",
+          "visible_when": { "field": "auth_method", "one_of": ["token"] }
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "text",
+          "binding": "username",
+          "placeholder": "GitLab username or email",
+          "visible_when": { "field": "auth_method", "one_of": ["password"] }
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "binding": "password",
+          "placeholder": "Not available for accounts with 2FA; use an access token instead",
+          "visible_when": { "field": "auth_method", "one_of": ["password"] }
+        },
+        {
+          "key": "oauth_client_id",
+          "label": "OAuth application ID (optional)",
+          "type": "text",
+          "binding": "config",
+          "placeholder": "Only for GitLab.com or instances requiring client authentication",
+          "visible_when": { "field": "auth_method", "one_of": ["password"] }
+        },
+        {
+          "key": "oauth_client_secret",
+          "label": "OAuth application secret (optional)",
+          "type": "password",
+          "binding": "secret",
+          "visible_when": { "field": "auth_method", "one_of": ["password"] }
+        },
+        {
+          "key": "read_only",
+          "label": "Read-only mode",
+          "type": "boolean",
+          "binding": "config",
+          "default": true
+        },
+        {
+          "key": "insecure_skip_verify",
+          "label": "Skip TLS certificate verification",
+          "type": "boolean",
+          "binding": "config",
+          "default": false
+        },
+        {
+          "key": "timeout_secs",
+          "label": "Connect timeout (seconds)",
+          "type": "number",
+          "binding": "config",
+          "default": 15
+        }
+      ],
+      "workbench": "io.github.nixing178.gitlab.workbench",
+      "capabilities": ["test", "connect", "disconnect"]
+    },
+    {
+      "type": "workbench",
+      "id": "io.github.nixing178.gitlab.workbench",
+      "label": "GitLab Console",
+      "description": "Browse projects, code, merge requests, pipelines and issues of a GitLab instance.",
+      "icon": "assets/plugin.svg"
+    },
+    {
+      "type": "mcp",
+      "id": "io.github.nixing178.gitlab.mcp",
+      "description": "GitLab projects, repository files, commits and merge request tools.",
+      "ai_tools": true,
+      "external_tools": false
+    }
+  ],
+  "localizations": {
+    "en": {
+      "name": "GitLab Console",
+      "description": "Browse projects and code, review merge requests, watch pipelines and handle issues inside DBX.",
+      "contributions": {
+        "io.github.nixing178.gitlab.connection": {
+          "label": "GitLab",
+          "description": "Connect to a GitLab instance with an access token or username & password.",
+          "fields": {
+            "display_name": { "label": "Connection name" },
+            "scheme": {
+              "label": "Protocol",
+              "options": { "https": "HTTPS", "http": "HTTP (internal network)" }
+            },
+            "host": { "label": "Host / domain", "placeholder": "gitlab.example.com" },
+            "port": { "label": "Port" },
+            "base_path": { "label": "Context path", "placeholder": "/gitlab" },
+            "auth_method": {
+              "label": "Authentication",
+              "options": { "token": "Access token", "password": "Username & password" }
+            },
+            "token": {
+              "label": "Access token",
+              "placeholder": "Personal / project access token (api or read_api)"
+            },
+            "username": {
+              "label": "Username",
+              "placeholder": "GitLab username or email"
+            },
+            "password": {
+              "label": "Password",
+              "placeholder": "Not available for accounts with 2FA; use an access token instead"
+            },
+            "oauth_client_id": {
+              "label": "OAuth application ID (optional)",
+              "placeholder": "Only for GitLab.com or instances requiring client authentication"
+            },
+            "oauth_client_secret": { "label": "OAuth application secret (optional)" },
+            "read_only": { "label": "Read-only mode" },
+            "insecure_skip_verify": { "label": "Skip TLS certificate verification" },
+            "timeout_secs": { "label": "Connect timeout (seconds)" }
+          }
+        },
+        "io.github.nixing178.gitlab.workbench": {
+          "label": "GitLab Console",
+          "description": "Browse projects, code, merge requests, pipelines and issues of a GitLab instance."
+        }
+      }
+    },
+    "zh-CN": {
+      "name": "GitLab 管理台",
+      "description": "在 DBX 内浏览 GitLab 项目与代码、评审合并请求、查看流水线并处理 Issue。",
+      "contributions": {
+        "io.github.nixing178.gitlab.connection": {
+          "label": "GitLab 连接",
+          "description": "使用访问令牌或账号密码连接 GitLab 实例。",
+          "fields": {
+            "display_name": { "label": "连接名称" },
+            "scheme": {
+              "label": "协议",
+              "options": { "https": "HTTPS", "http": "HTTP（内网）" }
+            },
+            "host": { "label": "IP / 域名", "placeholder": "gitlab.example.com" },
+            "port": { "label": "端口" },
+            "base_path": { "label": "上下文路径", "placeholder": "/gitlab" },
+            "auth_method": {
+              "label": "认证方式",
+              "options": { "token": "访问令牌", "password": "账号密码" }
+            },
+            "token": {
+              "label": "访问令牌",
+              "placeholder": "个人 / 项目访问令牌（api 或 read_api）"
+            },
+            "username": {
+              "label": "用户名",
+              "placeholder": "GitLab 用户名或邮箱"
+            },
+            "password": {
+              "label": "密码",
+              "placeholder": "开启两步验证的账号请改用访问令牌"
+            },
+            "oauth_client_id": {
+              "label": "OAuth 应用 ID（可选）",
+              "placeholder": "仅 GitLab.com 或要求客户端认证的实例需要"
+            },
+            "oauth_client_secret": { "label": "OAuth 应用密钥（可选）" },
+            "read_only": { "label": "只读模式" },
+            "insecure_skip_verify": { "label": "跳过 TLS 证书校验" },
+            "timeout_secs": { "label": "连接超时（秒）" }
+          }
+        },
+        "io.github.nixing178.gitlab.workbench": {
+          "label": "GitLab 管理台",
+          "description": "浏览 GitLab 的项目、代码、合并请求、流水线与 Issue。"
+        }
+      }
+    }
+  }
+}
