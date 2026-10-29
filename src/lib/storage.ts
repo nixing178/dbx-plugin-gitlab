@@ -59,3 +59,24 @@ export function writeJson(key: string, value: unknown, store: KeyValueStore = re
     // 配额或权限问题都不该影响主流程
   }
 }
+
+/** DBX 宿主持久化：opaque-origin iframe 不可用时由宿主保存结构化值。 */
+export async function readHostValue<T>(key: string): Promise<T | null> {
+  try {
+    const store = typeof window === "undefined" ? undefined : window.dbxPlugin?.storage;
+    if (!store) return null;
+    return ((await store.get(key)) as T | null) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function writeHostValue(key: string, value: unknown): Promise<void> {
+  try {
+    const store = typeof window === "undefined" ? undefined : window.dbxPlugin?.storage;
+    if (!store) return;
+    await store.set(key, value);
+  } catch {
+    // 宿主存储不可用时仍保留 localStorage / 内存回退。
+  }
+}

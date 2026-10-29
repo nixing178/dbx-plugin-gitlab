@@ -13,8 +13,14 @@ declare global {
     tokens?: Record<string, string>;
   }
 
+  interface DbxPluginStorage {
+    get(key: string): Promise<unknown>;
+    set(key: string, value: unknown): Promise<void>;
+  }
+
   interface DbxPlugin {
     ready: Promise<void>;
+    storage?: DbxPluginStorage;
     context: DbxPluginContext;
     locale: string;
     theme: DbxPluginTheme;

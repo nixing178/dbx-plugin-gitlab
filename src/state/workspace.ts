@@ -1,5 +1,5 @@
 import { ref, watch } from "vue";
-import { readJson, writeJson } from "../lib/storage";
+import { readHostValue, readJson, writeHostValue, writeJson } from "../lib/storage";
 import { normalizePins, togglePin } from "../lib/navPins";
 import type { ProjectNav } from "../lib/nav";
 import type { GitLabProject } from "../types";
@@ -65,15 +65,50 @@ export function togglePinnedGroup(): void {
   pinnedGroupOpen.value = !pinnedGroupOpen.value;
 }
 
+let hydrating = false;
+
+function workspaceState(): Persisted {
+  return {
+    recent: recentProjects.value.map(({ path, name }) => ({ path, name })),
+    collapsed: sidebarCollapsed.value,
+    pinned: [...pinnedProjectNav.value],
+    pinnedOpen: pinnedGroupOpen.value,
+  };
+}
+
+function persistWorkspace(): void {
+  const value = workspaceState();
+  writeJson(STORAGE_KEY, value);
+  void writeHostValue(STORAGE_KEY, value);
+}
+
+/** 宿主存储是异步接口；挂载 UI 前恢复，避免先用空钉选渲染。 */
+export async function hydrateWorkspace(): Promise<void> {
+  const host = await readHostValue<Partial<Persisted>>(STORAGE_KEY);
+  if (!host || typeof host !== "object" || Array.isArray(host)) {
+    // 首次启用宿主存储时，把当前 localStorage 中的旧偏好迁移过去。
+    persistWorkspace();
+    return;
+  }
+
+  hydrating = true;
+  try {
+    recentProjects.value = Array.isArray(host.recent)
+      ? host.recent.filter((item) => item && typeof item.path === "string")
+      : [];
+    sidebarCollapsed.value = Boolean(host.collapsed);
+    pinnedProjectNav.value = normalizePins(host.pinned);
+    pinnedGroupOpen.value = host.pinnedOpen !== false;
+  } finally {
+    hydrating = false;
+  }
+  writeJson(STORAGE_KEY, workspaceState());
+}
+
 watch(
   [recentProjects, sidebarCollapsed, pinnedProjectNav, pinnedGroupOpen],
   () => {
-    writeJson(STORAGE_KEY, {
-      recent: recentProjects.value,
-      collapsed: sidebarCollapsed.value,
-      pinned: pinnedProjectNav.value,
-      pinnedOpen: pinnedGroupOpen.value,
-    } satisfies Persisted);
+    if (!hydrating) persistWorkspace();
   },
-  { deep: true },
+  { deep: true, flush: "sync" },
 );

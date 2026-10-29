@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import { installMouseNavigation } from "./state/mouseNav";
+import { hydrateWorkspace } from "./state/workspace";
 import "./style.css";
 
 async function bootstrap(): Promise<void> {
@@ -14,6 +15,7 @@ async function bootstrap(): Promise<void> {
     document.documentElement.dataset.theme = plugin.theme?.appearance === "dark" ? "dark" : "light";
   }
 
+  await hydrateWorkspace();
   createApp(App).mount("#app");
   installMouseNavigation();
 }

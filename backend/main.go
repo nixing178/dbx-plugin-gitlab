@@ -29,7 +29,7 @@ func (p *plugin) Handle(
 func main() {
 	metadata := dbxpluginsdk.Metadata{
 		ID:           "io.github.nixing178.gitlab",
-		Version:      "0.2.3",
+		Version:      "0.2.4",
 		Capabilities: []string{"connections"},
 	}
 	server := dbxpluginsdk.NewServer(metadata, &plugin{service: rpc.NewService()})

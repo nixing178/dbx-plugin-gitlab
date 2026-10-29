@@ -11,12 +11,13 @@
   ],
   "permissions": [
     "host.workbench",
-    "host.events"
+    "host.events",
+    "host.storage"
   ],
   "source": "https://github.com/nixing178/dbx-plugin-gitlab",
   "homepage": "https://github.com/nixing178/dbx-plugin-gitlab",
   "license": "Apache-2.0",
-  "releaseNotes": "Add branch creation, project pinning, commit filtering, commit details, and project member management.",
+  "releaseNotes": "Fix project navigation pin persistence across DBX workbench reloads.",
   "localizations": {
     "zh-CN": {
       "name": "GitLab 管理台",
