@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { describeError, gitlabApi } from "../api";
 import { locale, t } from "../i18n";
 import { formatDateTime } from "../lib/format";
+import { taskProgress } from "../lib/issueMeta";
 import { renderMarkdown } from "../lib/markdown";
 import CommentComposer from "./CommentComposer.vue";
 import ConfirmAction from "./ConfirmAction.vue";
@@ -34,6 +35,9 @@ const assignees = computed(() =>
     .filter(Boolean)
     .join(", "),
 );
+
+/** 老版本实例不返回 task_completion_status，缺失时整段不渲染。 */
+const taskCompletion = computed(() => taskProgress(issue.value?.task_completion_status));
 
 async function load(): Promise<void> {
   loading.value = true;
@@ -148,11 +152,7 @@ onMounted(() => void load());
               {{ issue.author?.name || issue.author?.username || "-" }}
             </span>
             <span>{{ formatDateTime(issue.created_at, locale) }}</span>
-            <span v-if="issue.task_completion_status.count">
-              · {{ issue.task_completion_status.completed_count }}/{{
-                issue.task_completion_status.count
-              }}
-            </span>
+            <span v-if="taskCompletion">· {{ taskCompletion }}</span>
           </div>
         </div>
 

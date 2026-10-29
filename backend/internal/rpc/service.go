@@ -52,6 +52,7 @@ type LifecycleRequest struct {
 	Path      string   `json:"path"`
 	Paths     []string `json:"paths"`
 	Ref       string   `json:"ref"`
+	Branch    string   `json:"branch"`
 	From      string   `json:"from"`
 	To        string   `json:"to"`
 	Search    string   `json:"search"`
@@ -90,6 +91,12 @@ type LifecycleRequest struct {
 	MilestoneID *int `json:"milestoneId"`
 	EmojiName   string `json:"emojiName"`
 	AwardID     int    `json:"awardId"`
+	// 成员写操作
+	UserID      int    `json:"userId"`
+	AccessLevel int    `json:"accessLevel"`
+	Username    string `json:"username"`
+	Email       string `json:"email"`
+	ExpiresAt   string `json:"expiresAt"`
 
 	// CI 参数
 	PipelineID int                       `json:"pipelineId"`
@@ -316,6 +323,20 @@ func (s *Service) Handle(ctx context.Context, method string, raw json.RawMessage
 			return nil, mapError(err)
 		}
 		return page, nil
+
+	case "gitlab/createBranch":
+		client, rpcErr := s.session(request.ConnectionID)
+		if rpcErr != nil {
+			return nil, rpcErr
+		}
+		if guard := s.requireWritable(client); guard != nil {
+			return nil, guard
+		}
+		branch, err := client.CreateBranch(ctx, request.ProjectID, request.Branch, request.Ref)
+		if err != nil {
+			return nil, mapError(err)
+		}
+		return branch, nil
 
 	case "gitlab/compare":
 		client, rpcErr := s.session(request.ConnectionID)
@@ -999,6 +1020,116 @@ func (s *Service) Handle(ctx context.Context, method string, raw json.RawMessage
 			return nil, mapError(err)
 		}
 		return page, nil
+
+	case "gitlab/projectMember":
+		client, rpcErr := s.session(request.ConnectionID)
+		if rpcErr != nil {
+			return nil, rpcErr
+		}
+		member, err := client.ProjectMember(ctx, request.ProjectID, request.UserID)
+		if err != nil {
+			return nil, mapError(err)
+		}
+		return member, nil
+
+	case "gitlab/updateMemberRole":
+		client, rpcErr := s.session(request.ConnectionID)
+		if rpcErr != nil {
+			return nil, rpcErr
+		}
+		if guard := s.requireWritable(client); guard != nil {
+			return nil, guard
+		}
+		member, err := client.UpdateMemberRole(
+			ctx,
+			request.ProjectID,
+			request.UserID,
+			request.AccessLevel,
+		)
+		if err != nil {
+			return nil, mapError(err)
+		}
+		return member, nil
+
+	case "gitlab/updateMemberExpiry":
+		client, rpcErr := s.session(request.ConnectionID)
+		if rpcErr != nil {
+			return nil, rpcErr
+		}
+		if guard := s.requireWritable(client); guard != nil {
+			return nil, guard
+		}
+		member, err := client.UpdateMemberExpiry(
+			ctx,
+			request.ProjectID,
+			request.UserID,
+			request.AccessLevel,
+			request.ExpiresAt,
+		)
+		if err != nil {
+			return nil, mapError(err)
+		}
+		return member, nil
+
+	case "gitlab/removeMember":
+		client, rpcErr := s.session(request.ConnectionID)
+		if rpcErr != nil {
+			return nil, rpcErr
+		}
+		if guard := s.requireWritable(client); guard != nil {
+			return nil, guard
+		}
+		if err := client.RemoveMember(ctx, request.ProjectID, request.UserID); err != nil {
+			return nil, mapError(err)
+		}
+		return map[string]any{"success": true}, nil
+
+	case "gitlab/searchUsers":
+		client, rpcErr := s.session(request.ConnectionID)
+		if rpcErr != nil {
+			return nil, rpcErr
+		}
+		users, err := client.SearchUsers(ctx, request.Search, request.PerPage)
+		if err != nil {
+			return nil, mapError(err)
+		}
+		return map[string]any{"items": users}, nil
+
+	case "gitlab/addMember":
+		client, rpcErr := s.session(request.ConnectionID)
+		if rpcErr != nil {
+			return nil, rpcErr
+		}
+		if guard := s.requireWritable(client); guard != nil {
+			return nil, guard
+		}
+		member, err := client.AddProjectMember(ctx, request.ProjectID, gitlab.AddMemberOptions{
+			Username:    request.Username,
+			AccessLevel: request.AccessLevel,
+			ExpiresAt:   request.ExpiresAt,
+		})
+		if err != nil {
+			return nil, mapError(err)
+		}
+		return member, nil
+
+	case "gitlab/inviteMember":
+		client, rpcErr := s.session(request.ConnectionID)
+		if rpcErr != nil {
+			return nil, rpcErr
+		}
+		if guard := s.requireWritable(client); guard != nil {
+			return nil, guard
+		}
+		member, err := client.InviteProjectMember(ctx, request.ProjectID, gitlab.InviteMemberOptions{
+			Email:       request.Email,
+			AccessLevel: request.AccessLevel,
+			ExpiresAt:   request.ExpiresAt,
+		})
+		if err != nil {
+			return nil, mapError(err)
+		}
+		return member, nil
 
 	case "gitlab/searchBlobs":
 		client, rpcErr := s.session(request.ConnectionID)

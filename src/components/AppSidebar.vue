@@ -3,16 +3,22 @@ import { computed, ref } from "vue";
 import { t } from "../i18n";
 import { activeProjectNav, activeSection, currentProjectPath, go, goSection } from "../state/nav";
 import {
+  pinnedGroupOpen,
+  pinnedProjectNav,
   projectListScope,
   projectListSearch,
   recentProjects,
   rememberProject,
   sidebarCollapsed,
+  togglePinnedGroup,
+  togglePinnedProjectNav,
   toggleSidebar,
   type ProjectScope,
 } from "../state/workspace";
-import type { ProjectNav, Section } from "../lib/nav";
+import type { ProjectNav, ProjectView, Section } from "../lib/nav";
+import { PROJECT_NAV_ORDER, splitProjectNav } from "../lib/navPins";
 import Icon from "./Icon.vue";
+import SidebarNavRow from "./SidebarNavRow.vue";
 
 const project = currentProjectPath;
 const collapsed = sidebarCollapsed;
@@ -52,28 +58,46 @@ interface ProjectEntry {
   open: () => void;
 }
 
-function openProjectView(view: "overview" | "files"): void {
+function openProjectView(view: ProjectView): void {
   const path = project.value;
   if (!path) return;
   go({ name: "project", project: path, view });
 }
 
-const projectEntries = computed<ProjectEntry[]>(() => [
-  {
-    id: "code",
+/** 顺序由 PROJECT_NAV_ORDER 统一给出，这里只放每个入口的元信息，避免两处顺序写两遍。 */
+const PROJECT_ENTRY_META: Record<ProjectNav, Omit<ProjectEntry, "id">> = {
+  code: {
     label: () => t("projectNavCode"),
     icon: "code",
     open: () => openProjectView("overview"),
   },
-  { id: "issues", label: () => t("issues"), icon: "issue", open: () => openProjectIssues() },
-  { id: "mrs", label: () => t("mergeRequests"), icon: "merge", open: () => openProjectMrs() },
-  { id: "ci", label: () => t("projectNavCi"), icon: "pipeline", open: () => openProjectCi() },
-]);
+  commits: { label: () => t("commits"), icon: "commit", open: () => openProjectView("commits") },
+  branches: { label: () => t("branches"), icon: "branch", open: () => openProjectBranches() },
+  issues: { label: () => t("issues"), icon: "issue", open: () => openProjectIssues() },
+  mrs: { label: () => t("mergeRequests"), icon: "merge", open: () => openProjectMrs() },
+  ci: { label: () => t("projectNavCi"), icon: "pipeline", open: () => openProjectCi() },
+  members: { label: () => t("members"), icon: "users", open: () => openProjectView("members") },
+};
+
+/** 钉选置顶：已钉选一组在上，其余保持规范顺序。 */
+const navGroups = computed(() => splitProjectNav(pinnedProjectNav.value, PROJECT_NAV_ORDER));
+const pinnedEntries = computed<ProjectEntry[]>(() =>
+  navGroups.value.pinned.map((id) => ({ id, ...PROJECT_ENTRY_META[id] })),
+);
+const restEntries = computed<ProjectEntry[]>(() =>
+  navGroups.value.rest.map((id) => ({ id, ...PROJECT_ENTRY_META[id] })),
+);
 
 function openProjectIssues(): void {
   const path = project.value;
   if (!path) return;
   go({ name: "issues", project: path, scope: "project", state: "opened", search: "" });
+}
+
+function openProjectBranches(): void {
+  const path = project.value;
+  if (!path) return;
+  go({ name: "branches", project: path, scope: "overview", search: "" });
 }
 
 function openProjectMrs(): void {
@@ -161,20 +185,57 @@ function isStarredActive(): boolean {
           <span class="sidebar-project-name sidebar-label" :title="project">{{ project }}</span>
         </div>
 
-        <nav class="sidebar-nav" role="navigation">
+        <template v-if="pinnedEntries.length">
           <button
-            v-for="entry in projectEntries"
-            :key="entry.id"
-            class="sidebar-item"
+            v-if="!collapsed"
+            class="sidebar-pinned-head"
             type="button"
-            :class="{ active: isProjectEntryActive(entry.id) }"
-            :title="collapsed ? entry.label() : undefined"
-            :aria-current="isProjectEntryActive(entry.id) ? 'page' : undefined"
-            @click="entry.open()"
+            :aria-expanded="pinnedGroupOpen"
+            @click="togglePinnedGroup"
           >
-            <Icon :name="entry.icon" />
-            <span class="sidebar-label">{{ entry.label() }}</span>
+            <Icon name="pin" :size="13" />
+            <span class="sidebar-label">{{ t("navPinned") }}</span>
+            <Icon
+              class="sidebar-pinned-caret"
+              :name="pinnedGroupOpen ? 'chevron-up' : 'chevron-down'"
+              :size="14"
+            />
           </button>
+          <nav v-if="pinnedGroupOpen || collapsed" class="sidebar-nav" role="navigation">
+            <SidebarNavRow
+              v-for="entry in pinnedEntries"
+              :key="`pinned-${entry.id}`"
+              :label="entry.label()"
+              :icon="entry.icon"
+              :active="isProjectEntryActive(entry.id)"
+              :collapsed="collapsed"
+              :pinned="true"
+              :pin-title="t('unpinNavItem')"
+              @open="entry.open()"
+              @toggle-pin="togglePinnedProjectNav(entry.id)"
+            />
+          </nav>
+        </template>
+
+        <div
+          v-if="pinnedEntries.length"
+          class="sidebar-nav-divider"
+          role="separator"
+          aria-orientation="horizontal"
+        ></div>
+
+        <nav class="sidebar-nav" role="navigation">
+          <SidebarNavRow
+            v-for="entry in restEntries"
+            :key="entry.id"
+            :label="entry.label()"
+            :icon="entry.icon"
+            :active="isProjectEntryActive(entry.id)"
+            :collapsed="collapsed"
+            :pin-title="t('pinNavItem')"
+            @open="entry.open()"
+            @toggle-pin="togglePinnedProjectNav(entry.id)"
+          />
         </nav>
 
         <div v-if="!collapsed" class="sidebar-group">{{ t("navWorkspace") }}</div>

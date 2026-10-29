@@ -516,6 +516,10 @@ export interface Member {
   avatar_url: string;
   web_url: string;
   expires_at: string | null;
+  /** 加入时间；老版本 GitLab 可能不返回。 */
+  created_at?: string;
+  /** direct / inherited；后端取不到直接成员清单时为空。 */
+  source?: string;
 }
 
 export interface MemberPage {

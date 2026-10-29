@@ -6,6 +6,7 @@ import {
   routeKey,
   sidebarSection,
   switchSection,
+  type BranchScope,
   type ProjectView,
   type Route,
 } from "./nav";
@@ -101,6 +102,7 @@ describe("routeKey", () => {
       routeKey({ name: "issue", project: "demo/app", iid: 7 }),
       routeKey({ name: "commit", project: "demo/app", sha: "4cfa82fc" }),
       routeKey({ name: "mrNew", project: "demo/app" }),
+      routeKey({ name: "branches", project: "demo/app", scope: "overview", search: "" }),
       routeKey({ name: "todos" }),
     ];
     expect(new Set(keys).size).toBe(keys.length);
@@ -160,6 +162,14 @@ describe("breadcrumbs", () => {
     expect(crumbs[3].route).toBeUndefined();
   });
 
+  it("appends the commits crumb on the project commits view", () => {
+    const crumbs = breadcrumbs(projectRoute("commits"));
+    expect(crumbs.map((crumb) => crumb.id)).toEqual(["projects", "project", "commits"]);
+    expect(crumbs[1].text).toBe("demo/app");
+    expect(crumbs[1].route).toEqual({ name: "project", project: "demo/app", view: "overview" });
+    expect(crumbs[2].route).toBeUndefined();
+  });
+
   it("handles todos and issue details", () => {
     expect(breadcrumbs({ name: "todos" }).map((crumb) => crumb.id)).toEqual(["projects", "todos"]);
     const issue = breadcrumbs({ name: "issue", project: "demo/app", iid: 7 });
@@ -186,7 +196,11 @@ describe("sidebarSection", () => {
 
 describe("projectNavItem", () => {
   it("highlights the project level nav", () => {
-    expect(projectNavItem(projectRoute("commits"))).toBe("code");
+    expect(projectNavItem(projectRoute("overview"))).toBe("code");
+    expect(projectNavItem(projectRoute("files"))).toBe("code");
+    expect(projectNavItem(projectRoute("search"))).toBe("code");
+    expect(projectNavItem(projectRoute("commits"))).toBe("commits");
+    expect(projectNavItem(projectRoute("members"))).toBe("members");
     expect(projectNavItem({ name: "mrs", project: "demo/app", scope: "project", state: "opened", search: "" })).toBe("mrs");
     expect(projectNavItem({ name: "mr", project: "demo/app", iid: 1, tab: "overview" })).toBe("mrs");
     expect(projectNavItem({ name: "issues", project: "demo/app", scope: "project", state: "opened", search: "" })).toBe("issues");
@@ -308,6 +322,127 @@ describe("merge request creation route", () => {
     expect(switchSection(mrNew, "issues")).toEqual({
       name: "issues",
       project: "demo/project",
+      scope: "project",
+      state: "opened",
+      search: "",
+    });
+  });
+});
+
+describe("branch routes", () => {
+  const branches = (scope: BranchScope, search = ""): Route => ({
+    name: "branches",
+    project: "demo/app",
+    scope,
+    search,
+  });
+
+  it("keeps the tab and the name filter in the route key", () => {
+    expect(routeKey(branches("active"))).toBe("branches:demo/app:active:");
+    expect(routeKey(branches("active"))).not.toBe(routeKey(branches("stale")));
+    expect(routeKey(branches("overview", "feat"))).not.toBe(routeKey(branches("overview")));
+  });
+
+  it("hangs under the project crumb", () => {
+    const crumbs = breadcrumbs(branches("overview"));
+    expect(crumbs.map((crumb) => crumb.id)).toEqual(["projects", "project", "branches"]);
+    expect(crumbs[1].route).toEqual({ name: "project", project: "demo/app", view: "overview" });
+    expect(crumbs[2].route).toBeUndefined();
+  });
+
+  it("highlights the project level branches entry", () => {
+    expect(projectNavItem(branches("all"))).toBe("branches");
+    expect(sidebarSection(branches("all"))).toBe("projects");
+    expect(projectOf(branches("all"))).toBe("demo/app");
+  });
+});
+
+describe("branch creation route", () => {
+  const branchNew: Route = { name: "branchNew", project: "demo/app" };
+
+  it("keeps its own route key", () => {
+    expect(routeKey(branchNew)).toBe("branchNew:demo/app");
+    expect(routeKey({ name: "branchNew", project: "demo/other" })).not.toBe(routeKey(branchNew));
+    expect(routeKey(branchNew)).not.toBe(
+      routeKey({ name: "branches", project: "demo/app", scope: "overview", search: "" }),
+    );
+  });
+
+  it("hangs under the branch list with a trailing New crumb", () => {
+    const crumbs = breadcrumbs(branchNew);
+    expect(crumbs.map((crumb) => crumb.id)).toEqual([
+      "projects",
+      "project",
+      "branches",
+      "branchNew",
+    ]);
+    expect(crumbs[2].route).toEqual({
+      name: "branches",
+      project: "demo/app",
+      scope: "overview",
+      search: "",
+    });
+    expect(crumbs[3].text).toBeUndefined();
+    expect(crumbs[3].route).toBeUndefined();
+  });
+
+  it("highlights the project level branches entry", () => {
+    expect(projectNavItem(branchNew)).toBe("branches");
+    expect(sidebarSection(branchNew)).toBe("projects");
+    expect(projectOf(branchNew)).toBe("demo/app");
+  });
+
+  it("keeps the project context when switching away", () => {
+    expect(switchSection(branchNew, "issues")).toEqual({
+      name: "issues",
+      project: "demo/app",
+      scope: "project",
+      state: "opened",
+      search: "",
+    });
+  });
+});
+
+describe("branch scoped project route", () => {
+  const projectAt = (ref?: string): Route => ({
+    name: "project",
+    project: "demo/app",
+    view: "overview",
+    ...(ref ? { ref } : {}),
+  });
+
+  it("keeps the branch in the route key", () => {
+    const plain = routeKey(projectAt());
+    expect(routeKey(projectAt("feature/x"))).not.toBe(plain);
+    expect(routeKey(projectAt("feature/x"))).not.toBe(routeKey(projectAt("feature/y")));
+  });
+
+  it("hangs under the branch list with the branch name", () => {
+    const crumbs = breadcrumbs(projectAt("feature/x"));
+    expect(crumbs.map((crumb) => crumb.id)).toEqual([
+      "projects",
+      "project",
+      "branches",
+      "branch",
+    ]);
+    expect(crumbs[2].route).toEqual({
+      name: "branches",
+      project: "demo/app",
+      scope: "overview",
+      search: "",
+    });
+    expect(crumbs[3].text).toBe("feature/x");
+    expect(crumbs[3].route).toBeUndefined();
+  });
+
+  it("leaves the plain project crumb unchanged without a ref", () => {
+    expect(breadcrumbs(projectAt()).map((crumb) => crumb.id)).toEqual(["projects", "project"]);
+  });
+
+  it("keeps the project context when switching away", () => {
+    expect(switchSection(projectAt("feature/x"), "mrs")).toEqual({
+      name: "mrs",
+      project: "demo/app",
       scope: "project",
       state: "opened",
       search: "",

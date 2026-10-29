@@ -441,6 +441,10 @@ type Member struct {
 	AvatarURL   string `json:"avatar_url"`
 	WebURL      string `json:"web_url"`
 	ExpiresAt   string `json:"expires_at"`
+	CreatedAt   string `json:"created_at"`
+	// Source 是成员来源：direct（项目直接成员）/ inherited（从上层组继承）；
+	// 直接成员清单取不到时留空，由前端显示为未知。
+	Source string `json:"source"`
 }
 
 // MemberPage 是成员分页结果。

@@ -16,6 +16,7 @@ const ICONS: Record<string, string[]> = {
   check: ["M4 12l5 5L20 6"],
   x: ["M5 5l14 14", "M19 5L5 19"],
   clock: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18", "M12 7v5l3 2"],
+  calendar: ["M4 6h16v14H4z", "M8 3v4", "M16 3v4", "M4 10h16"],
   search: ["M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16", "M21 21l-4.3-4.3"],
   chevron: ["M9 6l6 6-6 6"],
   "chevron-up": ["M6 15l6-6 6 6"],
@@ -34,6 +35,7 @@ const ICONS: Record<string, string[]> = {
   code: ["M9 18l-6-6 6-6", "M15 6l6 6-6 6"],
   lock: ["M7 11V8a5 5 0 0 1 10 0v3", "M5 11h14v10H5z"],
   star: ["M12 4l2.4 5 5.6.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.6-.8z"],
+  pin: ["M8 4h8l-1.5 6 3.5 4H6l3.5-4z", "M12 14v6"],
   fork: ["M6 4v8", "M18 4v3a4 4 0 0 1-4 4h-4", "M9 20a3 3 0 1 1-6 0 3 3 0 0 1 6 0", "M21 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"],
   dot: ["M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2"],
   commit: ["M4 12h5", "M15 12h5", "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6"],
@@ -43,6 +45,7 @@ const ICONS: Record<string, string[]> = {
   sort: ["M8 4v16", "M5 17l3 3 3-3", "M16 20V4", "M13 7l3-3 3 3"],
   refresh: ["M20 12a8 8 0 1 1-2.5-5.8", "M20 4v5h-5"],
   more: ["M12 6h.01", "M12 12h.01", "M12 18h.01"],
+  copy: ["M9 9h11v11H9z", "M5 15V5h10"],
 };
 
 const props = withDefaults(defineProps<{ name: string; size?: number }>(), { size: 16 });

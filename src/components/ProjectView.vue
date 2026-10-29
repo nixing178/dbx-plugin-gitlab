@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { describeError, gitlabApi } from "../api";
 import { locale, t, type MessageKey } from "../i18n";
 import { copyText } from "../lib/clipboard";
+import type { CommitAuthorCount } from "../lib/commitList";
 import { relativeTime } from "../lib/format";
 import type { ProjectView as ProjectViewName } from "../lib/nav";
 import CommitHistory from "./CommitHistory.vue";
@@ -12,25 +13,41 @@ import Icon from "./Icon.vue";
 import MemberList from "./MemberList.vue";
 import ProjectInfo from "./ProjectInfo.vue";
 import RepoBrowser from "./RepoBrowser.vue";
-import type { Commit, GitLabProject, RepoOverview } from "../types";
+import type { Commit, GitLabProject, GitLabUser, RepoOverview } from "../types";
 
 const props = withDefaults(
-  defineProps<{ project: GitLabProject; view: ProjectViewName; readOnly?: boolean }>(),
-  { readOnly: false },
+  defineProps<{
+    project: GitLabProject;
+    view: ProjectViewName;
+    readOnly?: boolean;
+    /** 路由里锁定的分支；空表示用默认分支。 */
+    activeRef?: string;
+    /** 当前登录账号，用于成员页判断操作权限。 */
+    me?: GitLabUser | null;
+  }>(),
+  { readOnly: false, activeRef: "", me: null },
 );
 const emit = defineEmits<{
   "update:view": [value: ProjectViewName];
+  "update:ref": [value: string];
   "open-commit": [commit: Commit];
   "star-changed": [payload: { starred: boolean; starCount: number }];
 }>();
 
-const refName = ref(props.project.default_branch || "");
+const refName = ref(props.activeRef || props.project.default_branch || "");
 const overview = ref<RepoOverview | null>(null);
 const overviewLoading = ref(false);
 const overviewError = ref("");
 
 const codeOpen = ref(false);
 const copied = ref(false);
+
+/** 提交视图专用：作者筛选 / 消息搜索 / 刷新，筛选数据由 CommitHistory 过滤。 */
+const authorOpen = ref(false);
+const commitAuthors = ref<CommitAuthorCount[]>([]);
+const commitAuthor = ref("");
+const commitQuery = ref("");
+const commitHistoryRef = ref<InstanceType<typeof CommitHistory> | null>(null);
 
 const starred = ref(Boolean(props.project.starred));
 const starCount = ref(Number(props.project.star_count ?? 0));
@@ -47,6 +64,10 @@ const views: Array<{ id: ProjectViewName; label: MessageKey; icon: string }> = [
 ];
 
 const isFileView = computed(() => props.view === "overview" || props.view === "files");
+/** 提交视图按 GitLab 提交页整宽展示：不显示项目头与右侧项目信息。 */
+const isCommitsView = computed(() => props.view === "commits");
+/** 成员页是独立页面：不显示分支选择器与代码入口。 */
+const isMembersView = computed(() => props.view === "members");
 const headCommit = computed(() => overview.value?.head_commit ?? null);
 const initials = computed(() => (props.project.name || props.project.path).slice(0, 1).toUpperCase());
 
@@ -106,6 +127,7 @@ function chooseBranch(name: string): void {
   if (!name || name === refName.value) return;
   refName.value = name;
   overview.value = null;
+  emit("update:ref", name);
   void loadOverview();
 }
 
@@ -124,14 +146,29 @@ async function copySha(): Promise<void> {
 watch(
   () => props.project.path_with_namespace,
   () => {
-    refName.value = props.project.default_branch || "";
+    refName.value = props.activeRef || props.project.default_branch || "";
     overview.value = null;
     starred.value = Boolean(props.project.starred);
     starCount.value = Number(props.project.star_count ?? 0);
     starError.value = "";
     starTouched.value = false;
+    commitAuthors.value = [];
+    commitAuthor.value = "";
+    commitQuery.value = "";
     void loadOverview();
     void syncStarred();
+  },
+);
+
+/** 分支列表跳进来 / 浏览器前进后退时同步路由里的 ref。 */
+watch(
+  () => props.activeRef,
+  (value) => {
+    const next = value || props.project.default_branch || "";
+    if (next === refName.value) return;
+    refName.value = next;
+    overview.value = null;
+    void loadOverview();
   },
 );
 
@@ -153,10 +190,20 @@ watch(
   },
 );
 
+function setCommitAuthor(name: string): void {
+  commitAuthor.value = name;
+  authorOpen.value = false;
+}
+
+function reloadCommits(): void {
+  void commitHistoryRef.value?.reload();
+}
+
 function onDocumentClick(event: MouseEvent): void {
   const target = event.target as HTMLElement | null;
   if (!target?.closest(".gl-dropdown")) {
     codeOpen.value = false;
+    authorOpen.value = false;
   }
 }
 
@@ -171,7 +218,8 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
 
 <template>
   <section class="gl-project">
-    <header class="gl-project-head">
+    <!-- 提交页与成员页都是独立页面，不显示项目头（星标/fork/外链） -->
+    <header v-if="!isCommitsView && !isMembersView" class="gl-project-head">
       <div class="gl-project-title">
         <span class="gl-avatar">{{ initials }}</span>
         <h1>{{ project.name }}</h1>
@@ -211,7 +259,8 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
       </div>
     </header>
 
-    <div class="gl-controls">
+    <!-- 成员页是独立页面，不显示分支选择与代码入口 -->
+    <div v-if="!isMembersView" class="gl-controls">
       <GitRefSelect
         class="gl-branch-select"
         :project-id="project.path_with_namespace"
@@ -224,31 +273,84 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
       <span class="gl-controls-path mono">{{ project.path }} /</span>
       <span class="spacer"></span>
 
-      <button class="gl-btn subtle" type="button" @click="setView('commits')">
-        {{ t("history") }}
-      </button>
-      <button class="gl-btn subtle" type="button" @click="setView('search')">
-        {{ t("findFile") }}
-      </button>
-      <div class="gl-dropdown">
-        <button class="gl-btn subtle" type="button" @click="codeOpen = !codeOpen">
-          {{ t("projectNavCode") }}
-          <Icon name="chevron-down" :size="14" />
-        </button>
-        <div v-if="codeOpen" class="gl-dropdown-menu right">
+      <template v-if="isCommitsView">
+        <div class="gl-dropdown">
           <button
-            v-for="entry in views"
-            :key="entry.id"
+            class="gl-btn gl-commit-author"
             type="button"
-            class="gl-dropdown-item"
-            :class="{ active: view === entry.id }"
-            @click="setView(entry.id)"
+            :title="t('authorFilter')"
+            @click="authorOpen = !authorOpen"
           >
-            <Icon :name="entry.icon" :size="14" />
-            <span>{{ t(entry.label) }}</span>
+            <span class="gl-ellipsis">{{ commitAuthor || t("authorFilter") }}</span>
+            <Icon name="chevron-down" :size="14" />
           </button>
+          <div v-if="authorOpen" class="gl-dropdown-menu right">
+            <button
+              class="gl-dropdown-item"
+              :class="{ active: !commitAuthor }"
+              type="button"
+              @click="setCommitAuthor('')"
+            >
+              {{ t("allAuthors") }}
+            </button>
+            <button
+              v-for="author in commitAuthors"
+              :key="author.name"
+              class="gl-dropdown-item"
+              :class="{ active: commitAuthor === author.name }"
+              type="button"
+              @click="setCommitAuthor(author.name)"
+            >
+              <span class="grow gl-ellipsis">{{ author.name }}</span>
+              <span class="gl-commit-author-count">{{ author.count }}</span>
+            </button>
+            <div v-if="!commitAuthors.length" class="gl-dropdown-empty">{{ t("noData") }}</div>
+          </div>
         </div>
-      </div>
+
+        <label class="gl-commit-search">
+          <Icon name="search" :size="14" />
+          <input v-model="commitQuery" type="search" :placeholder="t('searchCommitMessage')" />
+        </label>
+
+        <button
+          class="gl-icon-btn"
+          type="button"
+          :title="t('refresh')"
+          :aria-label="t('refresh')"
+          @click="reloadCommits"
+        >
+          <Icon name="refresh" :size="15" />
+        </button>
+      </template>
+
+      <template v-else>
+        <button class="gl-btn subtle" type="button" @click="setView('commits')">
+          {{ t("history") }}
+        </button>
+        <button class="gl-btn subtle" type="button" @click="setView('search')">
+          {{ t("findFile") }}
+        </button>
+        <div class="gl-dropdown">
+          <button class="gl-btn subtle" type="button" @click="codeOpen = !codeOpen">
+            {{ t("projectNavCode") }}
+            <Icon name="chevron-down" :size="14" />
+          </button>
+          <div v-if="codeOpen" class="gl-dropdown-menu right">
+            <button
+              v-for="entry in views"
+              :key="entry.id"
+              type="button"
+              class="gl-dropdown-item"
+              :class="{ active: view === entry.id }"
+              @click="setView(entry.id)"
+            >
+              <Icon :name="entry.icon" :size="14" />
+              <span>{{ t(entry.label) }}</span>
+            </button>
+          </div>
+        </div>
+      </template>
     </div>
 
     <div class="gl-project-body">
@@ -302,15 +404,29 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
 
         <CommitHistory
           v-else-if="view === 'commits'"
+          ref="commitHistoryRef"
           :project="project"
           :ref-name="refName"
+          :author="commitAuthor"
+          :query="commitQuery"
+          @authors="commitAuthors = $event"
           @open="(commit) => emit('open-commit', commit)"
         />
-        <MemberList v-else-if="view === 'members'" :project="project" />
+        <MemberList
+          v-else-if="view === 'members'"
+          :project="project"
+          :read-only="readOnly"
+          :me="me"
+        />
         <CodeSearch v-else :project="project" />
       </div>
 
-      <ProjectInfo :project="project" :overview="overview" @open-view="setView" />
+      <ProjectInfo
+        v-if="!isCommitsView && !isMembersView"
+        :project="project"
+        :overview="overview"
+        @open-view="setView"
+      />
     </div>
   </section>
 </template>

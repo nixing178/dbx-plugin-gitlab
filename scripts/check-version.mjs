@@ -40,7 +40,7 @@ checks.push({ file: "package.json", version: pkg.version });
 
 const userAgent = clientGo.match(/userAgent\s*=\s*"dbx-gitlab-plugin\/([^"]+)"/);
 if (userAgent) {
-  checks.push({ file: "backend/internal/jenkins/client.go (User-Agent)", version: userAgent[1] });
+  checks.push({ file: "backend/internal/gitlab/client.go (User-Agent)", version: userAgent[1] });
 }
 
 const mismatched = checks.filter((check) => check.version !== version);

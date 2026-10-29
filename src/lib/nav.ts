@@ -10,18 +10,30 @@ export type MrScope = "project" | "reviewer" | "created_by_me" | "assigned_to_me
 export type IssueScope = "todos" | "assigned" | "created" | "project";
 export type ProjectView = "overview" | "files" | "commits" | "search" | "members";
 export type MrTab = "overview" | "commits" | "changes" | "pipelines";
+/** 分支页的页签：概览按活跃度分组，其余三个页签只看一个分组。 */
+export type BranchScope = "overview" | "active" | "stale" | "all";
 
 /** 全局左栏的一级分区。 */
 export type Section = "projects" | "mrs" | "pipelines" | "issues" | "todos";
 
 /** 项目内二级导航。 */
-export type ProjectNav = "code" | "issues" | "mrs" | "ci";
+export type ProjectNav =
+  | "code"
+  | "commits"
+  | "branches"
+  | "issues"
+  | "mrs"
+  | "ci"
+  | "members";
 
 export type CrumbId =
   | "projects"
   | "project"
   | "commits"
   | "commit"
+  | "branches"
+  | "branch"
+  | "branchNew"
   | "mrs"
   | "mr"
   | "mrNew"
@@ -42,8 +54,10 @@ export interface Crumb {
 /** `project` 为空串表示「全局视图」，不是「未选择」，避免可选字段到处判空。 */
 export type Route =
   | { name: "projects" }
-  | { name: "project"; project: string; view: ProjectView }
+  | { name: "project"; project: string; view: ProjectView; ref?: string }
   | { name: "commit"; project: string; sha: string }
+  | { name: "branches"; project: string; scope: BranchScope; search: string }
+  | { name: "branchNew"; project: string }
   | {
       name: "mrs";
       project: string;
@@ -74,9 +88,13 @@ export function routeKey(route: Route): string {
     case "todos":
       return "todos";
     case "project":
-      return `project:${route.project}:${route.view}`;
+      return `project:${route.project}:${route.view}${route.ref ? `:${route.ref}` : ""}`;
     case "commit":
       return `commit:${route.project}@${route.sha}`;
+    case "branches":
+      return `branches:${route.project}:${route.scope}:${route.search}`;
+    case "branchNew":
+      return `branchNew:${route.project}`;
     case "mrs":
       // 默认排序与 lib/mrFilters 的 DEFAULT_MR_ORDER / DEFAULT_MR_SORT 保持一致，
       // 这样「没传排序」和「显式传默认排序」共享同一条历史记录。
@@ -124,6 +142,20 @@ export function breadcrumbs(route: Route): Crumb[] {
     case "todos":
       return [root, { id: "todos" }];
     case "project":
+      if (route.view === "commits") {
+        return [root, projectCrumb(route.project), { id: "commits" }];
+      }
+      if (route.ref) {
+        return [
+          root,
+          projectCrumb(route.project),
+          {
+            id: "branches",
+            route: { name: "branches", project: route.project, scope: "overview", search: "" },
+          },
+          { id: "branch", text: route.ref },
+        ];
+      }
       return [root, { id: "project", text: route.project }];
     case "commit":
       return [
@@ -131,6 +163,18 @@ export function breadcrumbs(route: Route): Crumb[] {
         projectCrumb(route.project),
         { id: "commits", route: { name: "project", project: route.project, view: "commits" } },
         { id: "commit", text: route.sha.slice(0, 8) },
+      ];
+    case "branches":
+      return [root, projectCrumb(route.project), { id: "branches" }];
+    case "branchNew":
+      return [
+        root,
+        projectCrumb(route.project),
+        {
+          id: "branches",
+          route: { name: "branches", project: route.project, scope: "overview", search: "" },
+        },
+        { id: "branchNew" },
       ];
     case "mrs":
       return route.project ? [root, projectCrumb(route.project), { id: "mrs" }] : [root, { id: "mrs" }];
@@ -173,6 +217,8 @@ export function sidebarSection(route: Route): Section {
     case "projects":
     case "project":
     case "commit":
+    case "branches":
+    case "branchNew":
       return "projects";
     case "mrs":
     case "mr":
@@ -193,8 +239,14 @@ export function projectNavItem(route: Route): ProjectNav | null {
   if (!projectOf(route)) return null;
   switch (route.name) {
     case "project":
+      if (route.view === "commits") return "commits";
+      if (route.view === "members") return "members";
+      return "code";
     case "commit":
       return "code";
+    case "branches":
+    case "branchNew":
+      return "branches";
     case "mrs":
     case "mr":
     case "mrNew":

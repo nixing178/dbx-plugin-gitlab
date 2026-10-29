@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { commitBody, formatBytes, formatDateTime, formatDuration, relativeTime } from "./format";
+import {
+  commitBody,
+  dateInputValue,
+  formatBytes,
+  formatDate,
+  formatDateTime,
+  formatDuration,
+  relativeTime,
+} from "./format";
 
 const NOW = Date.parse("2026-10-23T12:00:00Z");
 
@@ -29,6 +37,32 @@ describe("formatDateTime", () => {
 
   it("returns an empty string for invalid input", () => {
     expect(formatDateTime("", "zh-CN")).toBe("");
+  });
+});
+
+describe("formatDate", () => {
+  it("只保留日期部分，不带时分", () => {
+    const text = formatDate("2026-10-23T09:00:00Z", "en-US");
+    expect(text).toMatch(/2026/);
+    expect(text).not.toMatch(/:/);
+  });
+
+  it("returns an empty string for invalid input", () => {
+    expect(formatDate("", "zh-CN")).toBe("");
+    expect(formatDate("not-a-date", "zh-CN")).toBe("");
+  });
+});
+
+describe("dateInputValue", () => {
+  it("截出 YYYY-MM-DD 供日期输入框使用", () => {
+    expect(dateInputValue("2026-10-29")).toBe("2026-10-29");
+    expect(dateInputValue("2026-10-29T10:20:30Z")).toBe("2026-10-29");
+  });
+
+  it("空值或非法值返回空串", () => {
+    expect(dateInputValue("")).toBe("");
+    expect(dateInputValue("   ")).toBe("");
+    expect(dateInputValue("not-a-date")).toBe("");
   });
 });
 

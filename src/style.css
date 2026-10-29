@@ -1317,6 +1317,86 @@ pre {
   white-space: nowrap;
 }
 
+/* 钉选置顶：行尾图钉默认隐藏，悬停或已钉选时可见 */
+.sidebar-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-row .sidebar-item {
+  padding-right: 32px;
+}
+
+.sidebar-pin {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.sidebar-row:hover .sidebar-pin,
+.sidebar-pin:focus-visible,
+.sidebar-pin.on {
+  opacity: 1;
+}
+
+.sidebar-pin:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+
+.sidebar-pin.on {
+  color: var(--accent);
+}
+
+.sidebar-pinned-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 12px 8px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.sidebar-pinned-head:hover {
+  color: var(--text);
+}
+
+.sidebar-pinned-caret {
+  margin-left: auto;
+}
+
+/* 钉选区与其余菜单项的分界；折叠态同样保留，避免两组入口连成一片 */
+.sidebar-nav-divider {
+  height: 1px;
+  margin: 6px 8px;
+  background: var(--border);
+}
+
+.sidebar.collapsed .sidebar-row .sidebar-item {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .sidebar-empty {
   padding: 4px 10px 8px;
   font-size: 12px;
@@ -1376,6 +1456,11 @@ pre {
     justify-content: center;
     padding-left: 0;
     padding-right: 0;
+  }
+
+  /* 窄屏只剩图标位，图钉按钮会让图标偏移，直接藏掉 */
+  .sidebar-pin {
+    display: none;
   }
 }
 
@@ -1666,21 +1751,6 @@ pre {
 
 .commit-changes-head .timeline-title {
   margin: 0;
-}
-
-.commit-row {
-  cursor: pointer;
-  align-items: center;
-}
-
-.commit-row-arrow {
-  flex: 0 0 auto;
-  color: var(--muted);
-  display: inline-flex;
-}
-
-.commit-row:hover .commit-row-arrow {
-  color: var(--text);
 }
 
 @media (max-width: 1200px) {
@@ -2457,6 +2527,227 @@ pre {
 
 .gl-commit-bar-skeleton .gl-commit-avatar {
   color: var(--muted);
+}
+
+/* ---------- 提交列表（提交视图） ---------- */
+
+.gl-commit-list {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.gl-commit-hint {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gl-commit-day-label {
+  margin: 0;
+  padding: 16px 14px 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gl-commit-day:first-child .gl-commit-day-label {
+  padding-top: 14px;
+}
+
+.gl-commit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.gl-commit-row:hover {
+  background: var(--panel-soft);
+}
+
+.gl-commit-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gl-commit-row-main:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.gl-commit-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.gl-commit-avatar[data-tone="0"] {
+  background: #e24329;
+}
+
+.gl-commit-avatar[data-tone="1"] {
+  background: #1f75cb;
+}
+
+.gl-commit-avatar[data-tone="2"] {
+  background: #1a9e6d;
+}
+
+.gl-commit-avatar[data-tone="3"] {
+  background: #9a4fc4;
+}
+
+.gl-commit-avatar[data-tone="4"] {
+  background: #c07908;
+}
+
+.gl-commit-avatar[data-tone="5"] {
+  background: #5b5bd6;
+}
+
+.gl-commit-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gl-commit-row-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.gl-commit-row:hover .gl-commit-row-title {
+  color: var(--accent);
+}
+
+.gl-commit-row-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gl-commit-row-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gl-commit-sha {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.gl-commit-copy {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gl-commit-copy:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+
+.gl-commit-copy.copied {
+  color: var(--success);
+}
+
+.gl-commit-more {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+/* 工具行里的作者下拉与消息搜索 */
+.gl-commit-author {
+  max-width: 180px;
+}
+
+.gl-commit-author-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gl-commit-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.gl-commit-search:focus-within {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gl-commit-search input {
+  width: 200px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .gl-commit-search input {
+    width: 120px;
+  }
+
+  .gl-commit-author {
+    max-width: 140px;
+  }
 }
 
 .gl-inline-warn {
@@ -3874,7 +4165,8 @@ pre {
   box-shadow: 0 10px 28px rgb(0 0 0 / 14%);
 }
 
-.gl-menu-list button {
+.gl-menu-list button,
+.gl-menu-list a {
   padding: 7px 10px;
   border: 0;
   border-radius: 4px;
@@ -3882,9 +4174,11 @@ pre {
   color: var(--text);
   font-size: 13px;
   text-align: left;
+  text-decoration: none;
 }
 
-.gl-menu-list button:hover:not(:disabled) {
+.gl-menu-list button:hover:not(:disabled),
+.gl-menu-list a:hover {
   background: var(--panel-soft);
   color: var(--accent);
 }
@@ -4428,5 +4722,401 @@ pre {
 
   .gl-mr-view-actions {
     justify-content: flex-start;
+  }
+}
+
+/* ---------------------------------------------------------------
+   项目成员页（对齐 GitLab project members：标题 + 页签 + 筛选 + 表格）
+   --------------------------------------------------------------- */
+.gl-members {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gl-members-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gl-members-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gl-members-title h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.gl-members-title p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.gl-members-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gl-members-search {
+  flex: 1 1 240px;
+}
+
+/* ⋮ 菜单要能溢出卡片，所以卡片不裁剪，圆角交给表头补 */
+.gl-members-card {
+  overflow: visible;
+}
+
+.gl-members-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
+}
+
+.gl-members-table th {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.gl-members-table th:first-child {
+  border-top-left-radius: var(--radius);
+}
+
+.gl-members-table th:last-child {
+  border-top-right-radius: var(--radius);
+}
+
+.gl-members-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.gl-member-row:hover td {
+  background: var(--panel-soft);
+}
+
+.gl-member-row:last-child td {
+  border-bottom: 0;
+}
+
+.gl-member-col-account {
+  width: 30%;
+}
+
+.gl-member-col-source {
+  width: 19%;
+}
+
+.gl-member-col-role {
+  width: 14%;
+}
+
+.gl-member-col-expiry {
+  width: 18%;
+}
+
+.gl-member-col-joined {
+  width: 18%;
+}
+
+.gl-member-col-menu {
+  width: 64px;
+}
+
+.gl-member-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.gl-member-avatar {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: #e24329;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.gl-member-avatar[data-tone="0"] {
+  background: #e24329;
+}
+
+.gl-member-avatar[data-tone="1"] {
+  background: #1f75cb;
+}
+
+.gl-member-avatar[data-tone="2"] {
+  background: #1a9e6d;
+}
+
+.gl-member-avatar[data-tone="3"] {
+  background: #9a4fc4;
+}
+
+.gl-member-avatar[data-tone="4"] {
+  background: #c07908;
+}
+
+.gl-member-avatar[data-tone="5"] {
+  background: #5b5bd6;
+}
+
+.gl-member-id {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.gl-member-name {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.gl-member-name:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.gl-member-handle {
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gl-member-state {
+  margin-left: 2px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.gl-member-source {
+  color: var(--muted);
+}
+
+.gl-member-role-select {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 12.5px;
+}
+
+.gl-member-expiry-input {
+  height: 30px;
+  max-width: 140px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12.5px;
+}
+
+.gl-member-expiry-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.gl-member-expiry-input:disabled {
+  opacity: 0.6;
+}
+
+/* 菜单里的破坏性操作 */
+.gl-menu-list button.danger {
+  color: var(--danger);
+}
+
+.gl-menu-list button.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+}
+
+.gl-member-role {
+  color: var(--text);
+}
+
+.gl-member-expiry {
+  color: var(--text);
+}
+
+.gl-member-joined {
+  color: var(--muted);
+}
+
+.gl-member-expiry-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+}
+
+.gl-member-menu-cell {
+  padding-right: 10px;
+  text-align: right;
+}
+
+.gl-member-menu-cell .gl-menu {
+  display: inline-block;
+  text-align: left;
+}
+
+/* ⋮ 默认无边框，hover 才浮现；三点在 16px 尺寸下需要加粗才看得清 */
+.gl-member-menu-cell .gl-icon-btn {
+  min-width: 28px;
+  height: 28px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+}
+
+.gl-member-menu-cell .gl-icon-btn:hover {
+  border-color: var(--border);
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.gl-member-menu-cell .gl-icon {
+  stroke-width: 3.2;
+}
+
+.gl-members-more {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* 邀请成员弹窗 */
+.gl-invite .field + .field {
+  margin-top: 16px;
+}
+
+.gl-invite-intro {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.gl-invite-input {
+  position: relative;
+}
+
+.gl-invite-input .input {
+  width: 100%;
+}
+
+.gl-invite-suggestions {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 14%);
+}
+
+.gl-invite-suggestions button {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gl-invite-suggestions button:hover {
+  background: var(--panel-soft);
+  color: var(--accent);
+}
+
+.gl-invite-hint {
+  margin: 6px 0 0;
+}
+
+.gl-invite-select,
+.gl-invite-date {
+  width: 100%;
+}
+
+.gl-invite-link {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 12.5px;
+  text-decoration: none;
+}
+
+.gl-invite-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1100px) {
+  .gl-member-col-joined,
+  .gl-member-joined {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .gl-member-col-source,
+  .gl-member-source,
+  .gl-member-col-expiry,
+  .gl-member-expiry {
+    display: none;
+  }
+
+  .gl-member-col-account {
+    width: 62%;
+  }
+
+  .gl-member-col-role {
+    width: 32%;
   }
 }

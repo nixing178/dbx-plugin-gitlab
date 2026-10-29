@@ -1,5 +1,7 @@
 import { ref, watch } from "vue";
 import { readJson, writeJson } from "../lib/storage";
+import { normalizePins, togglePin } from "../lib/navPins";
+import type { ProjectNav } from "../lib/nav";
 import type { GitLabProject } from "../types";
 
 export interface RecentProject {
@@ -10,12 +12,17 @@ export interface RecentProject {
 interface Persisted {
   recent: RecentProject[];
   collapsed: boolean;
+  /** 已钉选置顶的项目内导航；用户级偏好，所有项目共用。 */
+  pinned: ProjectNav[];
+  /** 「已钉选」分组是否展开。 */
+  pinnedOpen: boolean;
 }
 
 const STORAGE_KEY = "dbx.gitlab.workspace.v1";
 const MAX_RECENT = 8;
 
-const persisted = readJson<Persisted>(STORAGE_KEY, { recent: [], collapsed: false });
+// 旧版本没有 pinned / pinnedOpen 字段，按缺省值兜底。
+const persisted = readJson<Partial<Persisted>>(STORAGE_KEY, {});
 
 export const recentProjects = ref<RecentProject[]>(
   Array.isArray(persisted.recent)
@@ -23,6 +30,8 @@ export const recentProjects = ref<RecentProject[]>(
     : [],
 );
 export const sidebarCollapsed = ref(Boolean(persisted.collapsed));
+export const pinnedProjectNav = ref<ProjectNav[]>(normalizePins(persisted.pinned));
+export const pinnedGroupOpen = ref(persisted.pinnedOpen !== false);
 
 /** 项目列表的筛选条件提到模块级：侧栏入口与列表页共享，返回列表不丢条件。 */
 export type ProjectScope = "member" | "starred" | "owned" | "inactive";
@@ -46,12 +55,24 @@ export function toggleSidebar(): void {
   sidebarCollapsed.value = !sidebarCollapsed.value;
 }
 
+/** 钉选/取消钉选某个项目内入口：钉了的排到左栏顶部。 */
+export function togglePinnedProjectNav(id: ProjectNav): void {
+  pinnedProjectNav.value = togglePin(pinnedProjectNav.value, id);
+}
+
+/** 折叠 / 展开「已钉选」分组。 */
+export function togglePinnedGroup(): void {
+  pinnedGroupOpen.value = !pinnedGroupOpen.value;
+}
+
 watch(
-  [recentProjects, sidebarCollapsed],
+  [recentProjects, sidebarCollapsed, pinnedProjectNav, pinnedGroupOpen],
   () => {
     writeJson(STORAGE_KEY, {
       recent: recentProjects.value,
       collapsed: sidebarCollapsed.value,
+      pinned: pinnedProjectNav.value,
+      pinnedOpen: pinnedGroupOpen.value,
     } satisfies Persisted);
   },
   { deep: true },

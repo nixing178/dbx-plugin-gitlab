@@ -46,6 +46,17 @@ export function formatDateTime(iso: string, locale: string): string {
   });
 }
 
+/** 只格式化日期（用于成员过期时间这类不需要时分的字段）。 */
+export function formatDate(iso: string, locale: string): string {
+  const time = parse(iso);
+  if (Number.isNaN(time)) return "";
+  return new Date(time).toLocaleDateString(isChinese(locale) ? "zh-CN" : "en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
 /**
  * 提交正文：GitLab 的 `message` 首行就是 `title`（可能被实例截断），
  * 详情页标题已展示过一次，正文只保留其余部分。
@@ -64,6 +75,14 @@ export function commitBody(message: string, title: string): string {
     rest = rest.trimStart().slice(heading.length);
   }
   return rest.trim();
+}
+
+/** 把 expires_at 之类的 ISO 时间转成 <input type="date"> 的值；空值/非法值返回空串。 */
+export function dateInputValue(iso: string): string {
+  const text = (iso ?? "").trim();
+  if (!text) return "";
+  const match = text.match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : "";
 }
 
 export function formatBytes(size: number): string {

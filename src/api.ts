@@ -2,6 +2,7 @@ import type {
   ArtifactDownload,
   Approval,
   AwardEmoji,
+  Branch,
   BranchPage,
   CommitDetail,
   CommitPage,
@@ -12,12 +13,14 @@ import type {
   Discussion,
   FileContent,
   GitLabProject,
+  GitLabUser,
   Issue,
   IssuePage,
   Job,
   JobPage,
   JobTrace,
   LabelPage,
+  Member,
   MemberPage,
   MergeRequest,
   MilestonePage,
@@ -160,6 +163,10 @@ export const gitlabApi = {
 
   branches(projectId: string, search = "", page = 1, perPage = 100): Promise<BranchPage> {
     return invoke<BranchPage>("gitlab/branches", { projectId, search, page, perPage });
+  },
+
+  createBranch(projectId: string, branch: string, ref: string): Promise<Branch> {
+    return invoke<Branch>("gitlab/createBranch", { projectId, branch, ref }, 30_000);
   },
 
   compare(projectId: string, from: string, to: string): Promise<CompareResult> {
@@ -506,6 +513,61 @@ export const gitlabApi = {
       page,
       perPage,
     });
+  },
+
+  projectMember(projectId: string, userId: number): Promise<Member> {
+    return invoke<Member>("gitlab/projectMember", { projectId, userId }, 20_000);
+  },
+
+  updateMemberRole(projectId: string, userId: number, accessLevel: number): Promise<Member> {
+    return invoke<Member>("gitlab/updateMemberRole", { projectId, userId, accessLevel }, 30_000);
+  },
+
+  updateMemberExpiry(
+    projectId: string,
+    userId: number,
+    accessLevel: number,
+    expiresAt: string,
+  ): Promise<Member> {
+    return invoke<Member>(
+      "gitlab/updateMemberExpiry",
+      { projectId, userId, accessLevel, expiresAt },
+      30_000,
+    );
+  },
+
+  removeMember(projectId: string, userId: number): Promise<{ success: boolean }> {
+    return invoke<{ success: boolean }>("gitlab/removeMember", { projectId, userId }, 30_000);
+  },
+
+  searchUsers(search: string, perPage = 20): Promise<{ items: GitLabUser[] }> {
+    return invoke<{ items: GitLabUser[] }>("gitlab/searchUsers", { search, perPage }, 20_000);
+  },
+
+  addMember(
+    projectId: string,
+    username: string,
+    accessLevel: number,
+    expiresAt = "",
+  ): Promise<Member> {
+    return invoke<Member>(
+      "gitlab/addMember",
+      { projectId, username, accessLevel, expiresAt },
+      30_000,
+    );
+  },
+
+  inviteMember(
+    projectId: string,
+    email: string,
+    accessLevel: number,
+    expiresAt = "",
+  ): Promise<Member> {
+    return invoke<Member>(
+      "gitlab/inviteMember",
+      { projectId, email, accessLevel, expiresAt },
+      30_000,
+    );
   },
 
   searchBlobs(

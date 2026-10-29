@@ -3,6 +3,8 @@ import { computed, onMounted, ref, watch } from "vue";
 import logoUrl from "../assets/plugin.svg";
 import { describeError, gitlabApi, setConnectionId } from "./api";
 import AppSidebar from "./components/AppSidebar.vue";
+import BranchList from "./components/BranchList.vue";
+import BranchNewView from "./components/BranchNewView.vue";
 import Breadcrumbs from "./components/Breadcrumbs.vue";
 import CommitView from "./components/CommitView.vue";
 import Icon from "./components/Icon.vue";
@@ -15,7 +17,13 @@ import PipelineView from "./components/PipelineView.vue";
 import ProjectList from "./components/ProjectList.vue";
 import ProjectView from "./components/ProjectView.vue";
 import { syncLocale, t } from "./i18n";
-import type { IssueScope, MrScope, MrTab, ProjectView as ProjectViewName } from "./lib/nav";
+import type {
+  BranchScope,
+  IssueScope,
+  MrScope,
+  MrTab,
+  ProjectView as ProjectViewName,
+} from "./lib/nav";
 import { projectGate } from "./lib/projectGate";
 import {
   back,
@@ -69,6 +77,12 @@ const issuesScope = computed<IssueScope>(() =>
 );
 const issuesState = computed(() => (route.value.name === "issues" ? route.value.state : "opened"));
 const issuesSearch = computed(() => (route.value.name === "issues" ? route.value.search : ""));
+const branchScope = computed<BranchScope>(() =>
+  route.value.name === "branches" ? route.value.scope : "overview",
+);
+const branchSearch = computed(() => (route.value.name === "branches" ? route.value.search : ""));
+/** 项目代码页锁定的分支；空表示用默认分支。 */
+const projectRef = computed(() => (route.value.name === "project" ? route.value.ref ?? "" : ""));
 const pipelineId = computed(() => (route.value.name === "pipeline" ? route.value.pipelineId : null));
 const jobId = computed(() =>
   route.value.name === "pipeline" ? route.value.jobId ?? null : null,
@@ -199,6 +213,41 @@ function backToMrList(): void {
   go({ name: "mrs", project: path, scope: "project", state: "opened", search: "" });
 }
 
+/** 新建分支走整页路由，取消后回到分支列表。 */
+function openCreateBranch(): void {
+  const path = currentProjectPath.value;
+  if (!path) return;
+  error.value = "";
+  go({ name: "branchNew", project: path });
+}
+
+function backToBranchList(): void {
+  const path = currentProjectPath.value;
+  if (!path) return;
+  go({ name: "branches", project: path, scope: "overview", search: "" });
+}
+
+/** 创建成功后回列表并按新分支名筛选，保证一眼能看到。 */
+function onBranchCreated(name: string): void {
+  const path = currentProjectPath.value;
+  if (!path) return;
+  go({ name: "branches", project: path, scope: "all", search: name });
+}
+
+/** 点分支名：打开锁定该 ref 的项目代码页，返回时回到分支列表。 */
+function openBranchRef(name: string): void {
+  const path = currentProjectPath.value;
+  if (!path || !name) return;
+  error.value = "";
+  go({ name: "project", project: path, view: "overview", ref: name });
+}
+
+/** 项目页切换分支只改当前页参数，前进/后退仍能复现。 */
+function setProjectRef(value: string): void {
+  if (route.value.name !== "project") return;
+  replace({ ...route.value, ref: value });
+}
+
 function openPipelineFromMr(pipelineId: number): void {
   if (route.value.name !== "mr") return;
   go({ name: "pipeline", project: route.value.project, pipelineId });
@@ -206,6 +255,12 @@ function openPipelineFromMr(pipelineId: number): void {
 
 function setIssueFilter(patch: Partial<{ scope: IssueScope; state: string; search: string }>): void {
   if (route.value.name !== "issues") return;
+  replace({ ...route.value, ...patch });
+}
+
+/** 分支页的页签与筛选都进路由，返回列表时条件不丢。 */
+function setBranchFilter(patch: Partial<{ scope: BranchScope; search: string }>): void {
+  if (route.value.name !== "branches") return;
   replace({ ...route.value, ...patch });
 }
 
@@ -349,9 +404,33 @@ onMounted(async () => {
             :project="activeProject"
             :view="projectView"
             :read-only="readOnly"
+            :active-ref="projectRef"
+            :me="identity"
             @update:view="setProjectView"
+            @update:ref="setProjectRef"
             @open-commit="(commit) => openCommit(commit.id)"
             @star-changed="onProjectStarChanged"
+          />
+
+          <BranchNewView
+            v-else-if="route.name === 'branchNew' && activeProject"
+            :project="activeProject"
+            :read-only="readOnly"
+            @created="onBranchCreated"
+            @cancel="backToBranchList"
+          />
+
+          <BranchList
+            v-else-if="route.name === 'branches' && activeProject"
+            :project="activeProject"
+            :scope="branchScope"
+            :search="branchSearch"
+            :read-only="readOnly"
+            @update:scope="(value) => setBranchFilter({ scope: value })"
+            @update:search="(value) => setBranchFilter({ search: value })"
+            @open-commit="openCommit"
+            @new-branch="openCreateBranch"
+            @open-branch="openBranchRef"
           />
 
           <CommitView

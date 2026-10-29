@@ -40,8 +40,6 @@ const createdAt = computed(() => {
 
 const shortcuts: Array<{ view: ProjectView; label: () => string; icon: string }> = [
   { view: "files", label: () => t("browseFiles"), icon: "folder" },
-  { view: "commits", label: () => t("commits"), icon: "commit" },
-  { view: "members", label: () => t("members"), icon: "users" },
   { view: "search", label: () => t("codeSearch"), icon: "search" },
 ];
 </script>

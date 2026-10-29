@@ -16,7 +16,7 @@
   "source": "https://github.com/nixing178/dbx-plugin-gitlab",
   "homepage": "https://github.com/nixing178/dbx-plugin-gitlab",
   "license": "Apache-2.0",
-  "releaseNotes": "First release: browse projects and code, review merge requests, watch pipelines, and handle issues inside DBX.",
+  "releaseNotes": "Add branch creation, project pinning, commit filtering, commit details, and project member management.",
   "localizations": {
     "zh-CN": {
       "name": "GitLab 管理台",
