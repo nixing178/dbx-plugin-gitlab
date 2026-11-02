@@ -1,5 +1,7 @@
 # GitLab Console for DBX
 
+[![CI](https://github.com/nixing178/dbx-plugin-gitlab/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nixing178/dbx-plugin-gitlab/actions/workflows/ci.yml)
+
 在 DBX 工作台内浏览 GitLab 项目与代码、评审合并请求，并把同一套能力通过 MCP 工具交给内置 AI。
 
 目标实例：GitLab 社区版 / 企业版 17.x（REST API v4）。
@@ -120,6 +122,8 @@ npx --yes @dbx-app/plugin-cli@0.1.9 package .
 # 身份校验
 node scripts/verify-sidecar-identity.mjs dist/unpacked/bin/windows-x64/dbx-plugin-gitlab.exe
 ```
+
+`main` 分支受保护：改动需走 PR，且 `web`（typecheck / vitest / build）与 `backend`（vet / race test / build）两个必需检查通过才能合并；禁止强推与删除分支。
 
 ## 结构
 
