@@ -11,6 +11,10 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      # TS 7（native 版）移除了 typescript/lib/tsc，vue-tsc 3.x 仍依赖该子路径
+      - dependency-name: "typescript"
+        versions: ["7.x"]
     groups:
       vue:
         patterns:
