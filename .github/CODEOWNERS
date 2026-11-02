@@ -1,0 +1,3 @@
+# 默认审阅人：新 PR 会自动请求该账号 review。
+# 规则中未启用 require_code_owner_review，因此不会阻塞单人仓库的合并。
+* @nixing178
