@@ -1,0 +1,4 @@
+# Keep dependency manifests LF-only so Windows checkouts (core.autocrlf=true)
+# do not produce whole-file line-ending diffs.
+package.json text eol=lf
+pnpm-lock.yaml text eol=lf
