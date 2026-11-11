@@ -12,8 +12,20 @@ jobs:
     uses: t8y2/dbx/.github/workflows/plugin-release-reusable.yml@plugin-cli-v0.1.10
     with:
       release-tag: ${{ github.event.release.tag_name }}
+      # ui/ 与 dist/ 不进 Git，CI 必须从源码构建 UI 再打包。
+      # 原生 sidecar 只能在对应 OS/架构的 runner 上打包（CLI 拒绝 target 与构建主机不一致）。
       package-command: npm install -g pnpm@10.11.0 && pnpm install --frozen-lockfile && pnpm build && dbx-plugin package .
       package-path: dist/*.dbxp
       metadata-path: dist/*.artifact.json
       plugin-cli-version: 0.1.9
-      build-matrix: '{"include":[{"runner":"windows-2022","target":"windows-x64"}]}'
+      go-version: "1.22.x"
+      rust-toolchain: ""
+      # 与 reusable workflow 的默认平台集合一致：一次发布产出 5 个原生包。
+      build-matrix: >-
+        {"include":[
+          {"runner":"windows-2022","target":"windows-x64"},
+          {"runner":"macos-15-intel","target":"darwin-x64"},
+          {"runner":"macos-15","target":"darwin-arm64"},
+          {"runner":"ubuntu-24.04","target":"linux-x64"},
+          {"runner":"ubuntu-24.04-arm","target":"linux-arm64"}
+        ]}

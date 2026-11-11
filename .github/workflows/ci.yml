@@ -63,3 +63,16 @@ jobs:
 
       - name: Build
         run: go build ./...
+
+      # 发布时 sidecar 在 5 个原生 runner 上分别打包；这里提前用交叉编译守护
+      # 非 Windows 平台的编译可移植性，避免发布当次才发现问题。
+      - name: Cross-build (darwin/linux)
+        env:
+          CGO_ENABLED: "0"
+        run: |
+          set -euo pipefail
+          for target in darwin/amd64 darwin/arm64 linux/amd64 linux/arm64; do
+            echo "::group::$target"
+            GOOS="${target%/*}" GOARCH="${target#*/}" go build ./...
+            echo "::endgroup::"
+          done

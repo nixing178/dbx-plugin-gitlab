@@ -41,6 +41,47 @@ func TestMCPToolsListed(t *testing.T) {
 	}
 }
 
+func TestMCPToolsDiscoveryWithoutConnection(t *testing.T) {
+	service := NewService()
+
+	result, rpcErr := service.Handle(context.Background(), "mcp/tools", json.RawMessage(`{}`))
+	if rpcErr != nil {
+		t.Fatalf("mcp/tools: %v", rpcErr)
+	}
+	list, ok := result.(MCPToolList)
+	if !ok {
+		t.Fatalf("unexpected result type %T", result)
+	}
+	if len(list.Tools) != len(mcpTools(false)) {
+		t.Fatalf("tools = %d, want %d", len(list.Tools), len(mcpTools(false)))
+	}
+	names := map[string]bool{}
+	for _, tool := range list.Tools {
+		names[tool.Name] = true
+	}
+	for _, want := range []string{"gitlab_list_projects", "gitlab_merge_mr"} {
+		if !names[want] {
+			t.Fatalf("missing tool %q", want)
+		}
+	}
+}
+
+func TestMCPToolsDiscoveryFallsBackWhenConnectionIsNotOpen(t *testing.T) {
+	service := NewService()
+
+	result, rpcErr := service.Handle(context.Background(), "mcp/tools", json.RawMessage(`{"connectionId":"not-open"}`))
+	if rpcErr != nil {
+		t.Fatalf("mcp/tools: %v", rpcErr)
+	}
+	list, ok := result.(MCPToolList)
+	if !ok {
+		t.Fatalf("unexpected result type %T", result)
+	}
+	if len(list.Tools) != len(mcpTools(false)) {
+		t.Fatalf("tools = %d, want %d", len(list.Tools), len(mcpTools(false)))
+	}
+}
+
 func TestMCPCallListProjects(t *testing.T) {
 	service := NewService()
 	connectForTest(t, service)

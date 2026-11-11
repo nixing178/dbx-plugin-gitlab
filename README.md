@@ -23,6 +23,7 @@
 | UI | 合并请求列表对齐 GitLab（状态页签带计数 / 筛选与排序 / 空状态插画 / 列表行） | ✅ 已完成 |
 | UI | 新建合并请求整页化（分支比较 / 首提交预填标题描述 / 提交与变更 / 指派人·审核者·里程碑·标记 / Markdown 描述） | ✅ 已完成 |
 | UI | 提交入口全覆盖（文件表最后提交、流水线列表与详情 sha、MR 流水线 tab、新建 MR 分支卡片与提交行） | ✅ 已完成 |
+| MCP | 外部 MCP 开放：35 个工具按 4 个工具集分级声明（read / write / full） | ✅ 已完成 |
 | 后续 | 分支保护、制品树浏览、OAuth 2.0 | 待排期 |
 
 ### M1 已支持
@@ -86,11 +87,45 @@ M1 全部为只读操作；Pipelines 与 Issues 页签在后续里程碑提供�
 
 > 分支保护、制品目录树浏览暂未实现，需要的场景请走 GitLab 网页。
 
+## 外部 MCP
+
+manifest 声明 `external_tools: true`，并把 35 个工具按工具集与访问级别显式登记（DBX 外部 MCP 是严格契约：未登记的工具不会对外暴露）。外部 MCP 客户端经由 `dbx-mcp` 调用，与内置 AI 共用同一套工具实现。
+
+| 工具集 | 工具数 | 级别 |
+|---|---|---|
+| Projects and code | 7 | read |
+| Merge requests | 12 | read / write / full（`gitlab_merge_mr`） |
+| Pipelines and jobs | 10 | read / write |
+| Issues and todos | 6 | read / write |
+
+启用步骤：
+
+1. 安装插件并添加 GitLab 连接；
+2. 打开「设置 → MCP → 能力」，找到 **GitLab Console** 卡片并打开「外部 MCP」开关；
+3. 首次开启时选择授权上限：只读 / 读写 / 完全，默认取插件声明最高级别与「读写」中较低者（即 `write`）；
+4. 需要 AI 合并 MR（`full`）时把上限提到「完全」，并按需开启调用确认。
+
+注意：
+
+- 授权上限之外的写工具保持隐藏；只读连接下写工具同样不可见。
+- 插件升级后新增的非只读工具、或级别升高的工具需要重新确认一次，不会静默扩大权限。
+- 单工具可在同一页面逐个关闭；工具总数 35（≤ 40），默认按 `flat` 直接列出。
+
 ## 安装
 
 在 DBX 插件中心搜索 **GitLab Console**，安装后添加 GitLab 连接。
 
-本地开发包可在「插件中心 → 设置 → 允许未签名开发包」后，从 `dist/io.github.nixing178.gitlab-<version>-windows-x64.dbxp` 安装。
+插件支持 Windows、macOS 与 Linux。打包 CLI 要求在目标 OS/架构的机器上打包（`target` 与构建主机不一致会直接报错），因此发布由 CI 在 5 个原生 runner 上分别打包，一次发版产出全部产物：
+
+| 平台 | 产物 |
+|---|---|
+| Windows x64 | `io.github.nixing178.gitlab-<version>-windows-x64.dbxp` |
+| macOS Apple Silicon | `io.github.nixing178.gitlab-<version>-darwin-arm64.dbxp` |
+| macOS Intel | `io.github.nixing178.gitlab-<version>-darwin-x64.dbxp` |
+| Linux x64 | `io.github.nixing178.gitlab-<version>-linux-x64.dbxp` |
+| Linux ARM64 | `io.github.nixing178.gitlab-<version>-linux-arm64.dbxp` |
+
+本地开发包可在「插件中心 → 设置 → 允许未签名开发包」后，从 `dist/` 下对应平台的 dbxp 安装。
 
 ## 连接配置
 
@@ -110,20 +145,27 @@ M1 全部为只读操作；Pipelines 与 Issues 页签在后续里程碑提供�
 pnpm install --ignore-scripts
 pnpm typecheck
 pnpm test          # 前端纯函数测试（vitest）
-pnpm build         # 版本校验 + 类型检查 + 单文件产物
+pnpm build         # 版本校验 + MCP 工具声明校验 + 类型检查 + 单文件产物
+node scripts/check-mcp-tools.mjs   # 单独校验 manifest.tools 与 mcp.go 工具清单一致
 
 cd backend
 go test ./...      # GitLab 客户端与 RPC 层测试（httptest 模拟）
 go build ./...
 
-# 打包（PATH 需包含 go）
+# 打包（PATH 需包含 go；产物 target 取当前主机，CLI 不允许跨平台打包）
 npx --yes @dbx-app/plugin-cli@0.1.9 package .
 
-# 身份校验
+# 显式指定 target（必须与构建主机一致，例如在 Apple Silicon 上）
+$env:DBX_PLUGIN_TARGET='darwin-arm64'; npx --yes @dbx-app/plugin-cli@0.1.9 package .
+
+# 结构校验（target 默认取包名后缀，可用 --target 覆盖）
+python scripts/verify-package.py dist/io.github.nixing178.gitlab-0.3.1-windows-x64.dbxp
+
+# 身份校验（省略路径时按当前主机推断 bin/<target>/ 下的可执行文件）
 node scripts/verify-sidecar-identity.mjs dist/unpacked/bin/windows-x64/dbx-plugin-gitlab.exe
 ```
 
-`main` 分支受保护：改动需走 PR，且 `web`（typecheck / vitest / build）与 `backend`（vet / race test / build）两个必需检查通过才能合并；禁止强推与删除分支。
+`main` 分支受保护：改动需走 PR，且 `web`（typecheck / vitest / build）与 `backend`（vet / race test / build / darwin·linux 交叉编译）两个必需检查通过才能合并；禁止强推与删除分支。
 
 ## 结构
 

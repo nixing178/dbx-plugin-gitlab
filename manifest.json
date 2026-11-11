@@ -3,7 +3,7 @@
   "manifest_version": 1,
   "id": "io.github.nixing178.gitlab",
   "name": "GitLab Console",
-  "version": "0.2.4",
+  "version": "0.3.1",
   "publisher": "nixing178",
   "homepage": "https://github.com/nixing178/dbx-plugin-gitlab",
   "source": "https://github.com/nixing178/dbx-plugin-gitlab",
@@ -166,7 +166,66 @@
       "id": "io.github.nixing178.gitlab.mcp",
       "description": "GitLab projects, repository files, commits and merge request tools.",
       "ai_tools": true,
-      "external_tools": false
+      "external_tools": true,
+      "toolsets": [
+        {
+          "id": "projects",
+          "title": "Projects and code",
+          "description": "Projects, repository files, commits, members and code search."
+        },
+        {
+          "id": "merge-requests",
+          "title": "Merge requests",
+          "description": "Review, comment on, approve and merge merge requests."
+        },
+        {
+          "id": "pipelines",
+          "title": "Pipelines and jobs",
+          "description": "Pipelines, job logs, test reports and CI actions."
+        },
+        {
+          "id": "issues",
+          "title": "Issues and todos",
+          "description": "Issues, issue comments and personal todos."
+        }
+      ],
+      "tools": {
+        "gitlab_list_projects": { "toolset": "projects", "access": "read" },
+        "gitlab_get_project": { "toolset": "projects", "access": "read" },
+        "gitlab_list_files": { "toolset": "projects", "access": "read" },
+        "gitlab_get_file": { "toolset": "projects", "access": "read" },
+        "gitlab_list_commits": { "toolset": "projects", "access": "read" },
+        "gitlab_list_members": { "toolset": "projects", "access": "read" },
+        "gitlab_search_code": { "toolset": "projects", "access": "read" },
+        "gitlab_list_merge_requests": { "toolset": "merge-requests", "access": "read" },
+        "gitlab_get_merge_request": { "toolset": "merge-requests", "access": "read" },
+        "gitlab_get_mr_diffs": { "toolset": "merge-requests", "access": "read" },
+        "gitlab_comment_mr": { "toolset": "merge-requests", "access": "write" },
+        "gitlab_reply_discussion": { "toolset": "merge-requests", "access": "write" },
+        "gitlab_resolve_discussion": { "toolset": "merge-requests", "access": "write" },
+        "gitlab_approve_mr": { "toolset": "merge-requests", "access": "write" },
+        "gitlab_unapprove_mr": { "toolset": "merge-requests", "access": "write" },
+        "gitlab_merge_mr": { "toolset": "merge-requests", "access": "full" },
+        "gitlab_set_mr_state": { "toolset": "merge-requests", "access": "write" },
+        "gitlab_create_mr": { "toolset": "merge-requests", "access": "write" },
+        "gitlab_update_mr": { "toolset": "merge-requests", "access": "write" },
+        "gitlab_list_pipelines": { "toolset": "pipelines", "access": "read" },
+        "gitlab_get_pipeline_jobs": { "toolset": "pipelines", "access": "read" },
+        "gitlab_get_job_log": { "toolset": "pipelines", "access": "read" },
+        "gitlab_get_test_report": { "toolset": "pipelines", "access": "read" },
+        "gitlab_retry_job": { "toolset": "pipelines", "access": "write" },
+        "gitlab_cancel_job": { "toolset": "pipelines", "access": "write" },
+        "gitlab_play_job": { "toolset": "pipelines", "access": "write" },
+        "gitlab_retry_pipeline": { "toolset": "pipelines", "access": "write" },
+        "gitlab_cancel_pipeline": { "toolset": "pipelines", "access": "write" },
+        "gitlab_create_pipeline": { "toolset": "pipelines", "access": "write" },
+        "gitlab_list_issues": { "toolset": "issues", "access": "read" },
+        "gitlab_get_issue": { "toolset": "issues", "access": "read" },
+        "gitlab_list_todos": { "toolset": "issues", "access": "read" },
+        "gitlab_create_issue": { "toolset": "issues", "access": "write" },
+        "gitlab_comment_issue": { "toolset": "issues", "access": "write" },
+        "gitlab_mark_todo_done": { "toolset": "issues", "access": "write" }
+      }
     }
   ],
   "localizations": {
@@ -263,6 +322,9 @@
         "io.github.nixing178.gitlab.workbench": {
           "label": "GitLab 管理台",
           "description": "浏览 GitLab 的项目、代码、合并请求、流水线与 Issue。"
+        },
+        "io.github.nixing178.gitlab.mcp": {
+          "description": "GitLab 项目、仓库文件、提交与合并请求工具。"
         }
       }
     }

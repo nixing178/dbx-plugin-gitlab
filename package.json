@@ -1,12 +1,12 @@
 {
   "name": "dbx-plugin-gitlab",
   "private": true,
-  "version": "0.2.4",
+  "version": "0.3.1",
   "type": "module",
   "packageManager": "pnpm@10.11.0",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/check-version.mjs && vue-tsc --noEmit && vite build",
+    "build": "node scripts/check-version.mjs && node scripts/check-mcp-tools.mjs && vue-tsc --noEmit && vite build",
     "build:watch": "vite build --watch",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
