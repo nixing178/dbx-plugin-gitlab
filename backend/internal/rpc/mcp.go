@@ -65,9 +65,14 @@ func (s *Service) handleMCPTools(raw json.RawMessage) (any, *Error) {
 			return nil, invalidParams("invalid mcp/tools parameters")
 		}
 	}
+	// 设置页做工具发现时没有活跃连接，返回完整清单（作者上限），由宿主按
+	// 插件授权上限与连接只读保护裁剪；实际调用仍走 mcp/call 的连接校验。
+	if strings.TrimSpace(request.ConnectionID) == "" {
+		return MCPToolList{Tools: mcpTools(false)}, nil
+	}
 	client, rpcErr := s.session(request.ConnectionID)
 	if rpcErr != nil {
-		return nil, rpcErr
+		return MCPToolList{Tools: mcpTools(false)}, nil
 	}
 	return MCPToolList{Tools: mcpTools(client.ReadOnly())}, nil
 }

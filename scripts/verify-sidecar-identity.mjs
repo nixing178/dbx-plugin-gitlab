@@ -5,14 +5,38 @@
  * DBX 会拒绝 "backend identity does not match manifest" 的插件，
  * 打包后跑一遍可以避免装到本机才发现。
  *
- * 用法：node scripts/verify-sidecar-identity.mjs [dist/unpacked/bin/windows-x64/dbx-plugin-gitlab.exe]
+ * 用法：node scripts/verify-sidecar-identity.mjs [dist/unpacked/bin/<target>/dbx-plugin-gitlab[.exe]]
+ *
+ * 省略路径时按当前主机推断 target（可用 DBX_PLUGIN_TARGET 覆盖），
+ * 并从 manifest 的 backend.executable 取可执行文件名。
  */
 import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+const HOST_OS = { win32: "windows", darwin: "darwin", linux: "linux" };
+const HOST_ARCH = { x64: "x64", arm64: "arm64" };
+
+function hostTarget() {
+  const os = HOST_OS[process.platform];
+  const arch = HOST_ARCH[process.arch];
+  if (!os || !arch) {
+    console.error(`[verify-sidecar] unsupported host ${process.platform}/${process.arch}`);
+    process.exit(1);
+  }
+  return `${os}-${arch}`;
+}
+
 const manifest = JSON.parse(readFileSync(resolve("manifest.json"), "utf8"));
-const exe = resolve(process.argv[2] ?? "dist/dbx-plugin-gitlab.exe");
+const target = process.env.DBX_PLUGIN_TARGET || hostTarget();
+const binary = (
+  manifest.entrypoints?.backend?.executable ?? "bin/dbx-plugin-gitlab"
+)
+  .split("/")
+  .pop()
+  .replace(/\.exe$/, "");
+const defaultPath = `dist/unpacked/bin/${target}/${binary}${target.startsWith("windows") ? ".exe" : ""}`;
+const exe = resolve(process.argv[2] ?? defaultPath);
 
 const child = spawn(exe, [], { stdio: ["pipe", "pipe", "inherit"] });
 let buffer = "";

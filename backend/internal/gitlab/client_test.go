@@ -48,7 +48,7 @@ func TestClientSendsAuthTokenAndUserAgent(t *testing.T) {
 	if token != "test-token" {
 		t.Fatalf("PRIVATE-TOKEN = %q", token)
 	}
-	if !strings.HasPrefix(agent, "dbx-gitlab-plugin/0.2.4") {
+	if !strings.HasPrefix(agent, "dbx-gitlab-plugin/0.3.1") {
 		t.Fatalf("User-Agent = %q", agent)
 	}
 	if path != "/api/v4/user" {
