@@ -3,7 +3,7 @@
   "manifest_version": 1,
   "id": "io.github.nixing178.gitlab",
   "name": "GitLab Console",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "publisher": "nixing178",
   "homepage": "https://github.com/nixing178/dbx-plugin-gitlab",
   "source": "https://github.com/nixing178/dbx-plugin-gitlab",
