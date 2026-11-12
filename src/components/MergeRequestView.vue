@@ -234,10 +234,20 @@ async function load(): Promise<void> {
         .mrAwardEmoji(props.project.path_with_namespace, props.iid)
         .catch(() => [] as AwardEmoji[]),
     ]);
-    mr.value = detail;
+    // 老实例可能不下发 assignees / reviewers / labels，JSON 里会是 null；
+    // 模板直接读 .length 会抛错整页空白，这里统一归一化为空数组。
+    mr.value = {
+      ...detail,
+      assignees: detail.assignees ?? [],
+      reviewers: detail.reviewers ?? [],
+      labels: detail.labels ?? [],
+    };
     // 详情里带 diff_refs；/diffs 若返回数组就不会有，用它兜底行内评论定位。
     diffRefs.value = detail.diff_refs ?? null;
-    discussions.value = threads;
+    discussions.value = (threads ?? []).map((thread) => ({
+      ...thread,
+      notes: thread.notes ?? [],
+    }));
     approvals.value = approvalState;
     awards.value = emoji;
     // diff 单独按页拉：单个大 MR 的差异可能几十 MB，一次拉完会被 8MB 上限截断。
