@@ -159,7 +159,7 @@ npx --yes @dbx-app/plugin-cli@0.1.9 package .
 $env:DBX_PLUGIN_TARGET='darwin-arm64'; npx --yes @dbx-app/plugin-cli@0.1.9 package .
 
 # 结构校验（target 默认取包名后缀，可用 --target 覆盖）
-python scripts/verify-package.py dist/io.github.nixing178.gitlab-0.3.1-windows-x64.dbxp
+python scripts/verify-package.py dist/io.github.nixing178.gitlab-0.3.2-windows-x64.dbxp
 
 # 身份校验（省略路径时按当前主机推断 bin/<target>/ 下的可执行文件）
 node scripts/verify-sidecar-identity.mjs dist/unpacked/bin/windows-x64/dbx-plugin-gitlab.exe

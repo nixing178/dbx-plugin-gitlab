@@ -48,7 +48,8 @@ func TestClientSendsAuthTokenAndUserAgent(t *testing.T) {
 	if token != "test-token" {
 		t.Fatalf("PRIVATE-TOKEN = %q", token)
 	}
-	if !strings.HasPrefix(agent, "dbx-gitlab-plugin/0.3.1") {
+	// 版本号一致性由 scripts/check-version.mjs 统一校验，这里只断言 UA 前缀，避免每次发版都要改测试。
+	if !strings.HasPrefix(agent, "dbx-gitlab-plugin/") {
 		t.Fatalf("User-Agent = %q", agent)
 	}
 	if path != "/api/v4/user" {
