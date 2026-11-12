@@ -53,7 +53,19 @@ func (c *Client) MergeRequests(
 		return nil, err
 	}
 	current, hasMore, total := pageFromHeader(header)
+	for i := range items {
+		normalizeMR(&items[i])
+	}
 	return &MRPage{Items: ensureSlice(items), Page: current, HasMore: hasMore, Total: total}, nil
+}
+
+// normalizeMR 把可能缺失的数组字段归一化为空切片。
+// GitLab 未下发 assignees / reviewers / labels 时，Go 结构体保持 nil，
+// 序列化成 JSON 就是 null，前端读取 .length 会直接抛错导致详情页空白。
+func normalizeMR(mr *MR) {
+	mr.Assignees = ensureSlice(mr.Assignees)
+	mr.Reviewers = ensureSlice(mr.Reviewers)
+	mr.Labels = ensureSlice(mr.Labels)
 }
 
 // mrListPath 决定列表路径，并把全局视角的 scope 写入 query。
@@ -179,6 +191,7 @@ func (c *Client) MergeRequest(ctx context.Context, projectID string, iid int) (*
 	if _, err := c.getJSON(ctx, base+"/merge_requests/"+strconv.Itoa(iid), nil, &mr); err != nil {
 		return nil, err
 	}
+	normalizeMR(&mr)
 	return &mr, nil
 }
 
@@ -266,6 +279,9 @@ func (c *Client) MRDiscussions(ctx context.Context, projectID string, iid int) (
 		&items,
 	); err != nil {
 		return nil, err
+	}
+	for i := range items {
+		items[i].Notes = ensureSlice(items[i].Notes)
 	}
 	return ensureSlice(items), nil
 }
