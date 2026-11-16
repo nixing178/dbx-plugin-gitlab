@@ -37,6 +37,10 @@ export interface GitLabProject {
   description: string;
   default_branch: string;
   web_url: string;
+  /** HTTPS clone 地址 */
+  http_url_to_repo?: string;
+  /** SSH clone 地址 */
+  ssh_url_to_repo?: string;
   avatar_url: string;
   readme_url: string;
   star_count: number;

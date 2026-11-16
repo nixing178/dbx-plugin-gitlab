@@ -2341,6 +2341,16 @@ pre {
   font-weight: 600;
 }
 
+.gl-dropdown-item:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.gl-dropdown-sep {
+  margin: 4px 0;
+  border-top: 1px solid var(--border);
+}
+
 .gl-dropdown-empty {
   padding: 10px;
   color: var(--muted);
