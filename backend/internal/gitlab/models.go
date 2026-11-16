@@ -52,6 +52,8 @@ type Project struct {
 	Description       string             `json:"description"`
 	DefaultBranch     string             `json:"default_branch"`
 	WebURL            string             `json:"web_url"`
+	HTTPURLToRepo     string             `json:"http_url_to_repo"` // HTTPS clone 地址
+	SSHURLToRepo      string             `json:"ssh_url_to_repo"`  // SSH clone 地址
 	AvatarURL         string             `json:"avatar_url"`
 	ReadmeURL         string             `json:"readme_url"`
 	StarCount         int                `json:"star_count"`
@@ -194,10 +196,10 @@ type MR struct {
 	UpdatedAt           time.Time  `json:"updated_at"`
 	MergedAt            *time.Time `json:"merged_at"`
 	// DiffRefs 用于行内评论定位；/diffs 的数组响应不带它，详情里这份是权威值。
-	DiffRefs            *DiffRefs  `json:"diff_refs"`
-	Milestone           *Milestone `json:"milestone"`
-	TimeStats           *TimeStats `json:"time_stats"`
-	Pipeline            *Pipeline  `json:"pipeline"`
+	DiffRefs  *DiffRefs  `json:"diff_refs"`
+	Milestone *Milestone `json:"milestone"`
+	TimeStats *TimeStats `json:"time_stats"`
+	Pipeline  *Pipeline  `json:"pipeline"`
 }
 
 // MRPage 是合并请求分页结果。

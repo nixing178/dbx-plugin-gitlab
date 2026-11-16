@@ -41,6 +41,24 @@ const overviewError = ref("");
 
 const codeOpen = ref(false);
 const copied = ref(false);
+/** 复制类操作的轻提示，1.5 秒后自动消失。 */
+const toast = ref("");
+
+function flash(message: string): void {
+  toast.value = message;
+  window.setTimeout(() => {
+    if (toast.value === message) toast.value = "";
+  }, 1500);
+}
+
+/** 复制 clone 地址；地址为空直接返回，复制失败不提示成功。 */
+async function copyCloneUrl(url: string): Promise<void> {
+  if (!url) return;
+  if (await copyText(url)) {
+    flash(t("copied"));
+    codeOpen.value = false;
+  }
+}
 
 /** 提交视图专用：作者筛选 / 消息搜索 / 刷新，筛选数据由 CommitHistory 过滤。 */
 const authorOpen = ref(false);
@@ -272,6 +290,7 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
 
       <span class="gl-controls-path mono">{{ project.path }} /</span>
       <span class="spacer"></span>
+      <span v-if="toast" class="muted small">{{ toast }}</span>
 
       <template v-if="isCommitsView">
         <div class="gl-dropdown">
@@ -347,6 +366,25 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
             >
               <Icon :name="entry.icon" :size="14" />
               <span>{{ t(entry.label) }}</span>
+            </button>
+            <div class="gl-dropdown-sep"></div>
+            <button
+              class="gl-dropdown-item"
+              type="button"
+              :disabled="!project.http_url_to_repo"
+              @click="copyCloneUrl(project.http_url_to_repo || '')"
+            >
+              <Icon name="copy" :size="14" />
+              <span>{{ t("copyHttpsUrl") }}</span>
+            </button>
+            <button
+              class="gl-dropdown-item"
+              type="button"
+              :disabled="!project.ssh_url_to_repo"
+              @click="copyCloneUrl(project.ssh_url_to_repo || '')"
+            >
+              <Icon name="copy" :size="14" />
+              <span>{{ t("copySshUrl") }}</span>
             </button>
           </div>
         </div>
