@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	userAgent           = "dbx-gitlab-plugin/0.3.2"
+	userAgent           = "dbx-gitlab-plugin/0.3.3"
 	maxJSONBody         = 8 << 20
 	defaultMaxFileBytes = 1 << 20
 	maxErrorBody        = 64 << 10
